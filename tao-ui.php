@@ -126,6 +126,19 @@
                 $p = tao_expand_image_meta($p, 'cover', $video->cover);
                 $p['teaser'] = 1;
             }
+            //Episode or Documentary Button
+            switch ($program->prog_type) {
+                case 1:
+                case 3:
+                    $p['launch_button'] = 'Episode 1';
+                    break;
+                case 2:
+                    $p['launch_button'] = 'Documentary';
+                    break;
+                default:
+                    $p['launch_button'] = 'Episode 1';
+                    break;
+            }
             //Experts name
             if (isset($params['experts']) && $params['experts'] == true) {
                 //Load associated experts
@@ -146,6 +159,8 @@
                 $expert_name = strrev(implode(strrev(' &amp; '), explode(strrev(', '), strrev($expert_name), 2)));
                 //Return the composite name
                 $p['expert_name'] = $expert_name;
+                //Overide the title if set
+                if ($meta['sub_title'] != '') $p['expert_name'] = $meta['sub_title'];
             }
             //Watch record
             if (is_user_logged_in()) {
@@ -195,32 +210,35 @@
         if ($expert == true) {
             $expert_value = 1;
         }
-        //Load the experts based on the epage
-        $sql = 'SELECT c.* 
-        FROM tao_program AS p
-        LEFT JOIN tao_program_counsellor AS pc ON pc.program_ID = p.ID
-        LEFT JOIN tao_counsellor AS c ON c.ID = pc.counsellor_ID
-        WHERE p.post_title = "' . $post->post_name . '" AND pc.expert = ' . $expert_value  . ' AND c.status = 1 ORDER BY c.ID';
-        $experts = $taodb->get_results($sql, ARRAY_A);
-        //Merge meta into the experts data
-        for ($i=0; $i < count($experts); $i++) {
-            $meta = json_decode($experts[$i]['meta'], true);
-            $experts[$i] = array_merge($experts[$i], $meta);
-            $experts[$i] = tao_expand_image_meta($experts[$i], 'portrait', $meta['portrait']);
-            $experts[$i] = tao_expand_image_meta($experts[$i], 'landscape', $meta['landscape']);
-            unset($experts[$i]['meta']);
-            unset($experts[$i]['portrait']);
-            unset($experts[$i]['landscape']);
-            //Preformat specialities
-            if (isset($experts[$i]['spec']) && $experts[$i]['spec'] != '') {
-                $specs = explode(',', $experts[$i]['spec']);
-                $s = '<ul>';
-                foreach ($specs as $spec) {
-                    $s .= '<li>' . trim($spec) . '</li>';
+        $experts = array();
+        if ($post != null && property_exists($post, 'post_name')) {
+            //Load the experts based on the epage
+            $sql = 'SELECT c.* 
+            FROM tao_program AS p
+            LEFT JOIN tao_program_counsellor AS pc ON pc.program_ID = p.ID
+            LEFT JOIN tao_counsellor AS c ON c.ID = pc.counsellor_ID
+            WHERE p.post_title = "' . $post->post_name . '" AND pc.expert = ' . $expert_value  . ' AND c.status = 1 ORDER BY c.ID';
+            $experts = $taodb->get_results($sql, ARRAY_A);
+            //Merge meta into the experts data
+            for ($i=0; $i < count($experts); $i++) {
+                $meta = json_decode($experts[$i]['meta'], true);
+                $experts[$i] = array_merge($experts[$i], $meta);
+                $experts[$i] = tao_expand_image_meta($experts[$i], 'portrait', $meta['portrait']);
+                $experts[$i] = tao_expand_image_meta($experts[$i], 'landscape', $meta['landscape']);
+                unset($experts[$i]['meta']);
+                unset($experts[$i]['portrait']);
+                unset($experts[$i]['landscape']);
+                //Preformat specialities
+                if (isset($experts[$i]['spec']) && $experts[$i]['spec'] != '') {
+                    $specs = explode(',', $experts[$i]['spec']);
+                    $s = '<ul>';
+                    foreach ($specs as $spec) {
+                        $s .= '<li>' . trim($spec) . '</li>';
+                    }
+                    $s .= '</ul>';
+                    //Set the html
+                    $experts[$i]['spec'] = $s;
                 }
-                $s .= '</ul>';
-                //Set the html
-                $experts[$i]['spec'] = $s;
             }
         }
         return $experts;
@@ -321,13 +339,15 @@
     }
     add_filter('cs_looper_custom_workshops', 'tao_workshops', 10, 2);
 
-    
-
     //Load available and coming soon programs
     function tao_cs_programs($result, $param) {
         global $taodb;
         global $wpdb;
         global $post;
+        
+        //Control which params are returned in the search
+        $include_cats = isset($param['categories']) ? $param['categories'] : array();
+        $include_type = isset($param['type']) ? $param['type'] : array();
         if ($taodb == null) $taodb = tao_set_db();
         //Limit
         $limit = '';
@@ -338,12 +358,22 @@
         $categories = get_terms( 'tao_categories', array(
             'hide_empty' => false,
         ));
+        //Filter by include_cats
+        $filter = '';
+        if (!empty($include_cats)) {
+            $filter = ' AND c.ID IN (' . implode(',', $include_cats) . ') ';
+        }
+        if (!empty($include_type)) {
+            $filter = ' AND p.prog_type IN (' . implode(',', $include_type) . ') ';
+        }
+        //Run search
         $sql = 'SELECT p.*, DATE_FORMAT(p.golive, "%b %Y") AS streaming, DATE_FORMAT(p.golive, "%M %Y") AS full_streaming, c.name AS category
                 FROM tao_program AS p
                 LEFT JOIN tao_program_category AS pc ON pc.program_ID = p.ID
                 LEFT JOIN tao_category AS c ON pc.category_ID = c.ID
-                WHERE p.status = 1
-                ORDER BY p.published DESC, p.golive DESC ' . $limit;
+                WHERE p.status = 1 ' . $filter . '
+                ORDER BY p.published DESC, p.golive ASC ' . $limit;
+
         $programs = $taodb->get_results($sql, ARRAY_A);
         if (count($programs) != 0) {
             for ($i=0; $i < count($programs); $i++) {
@@ -375,6 +405,21 @@
                 $programs[$i] = tao_expand_image_meta($programs[$i], 'portrait', $meta['portrait']);
                 $programs[$i] = tao_expand_image_meta($programs[$i], 'landscape', $meta['landscape']);                
                 $programs[$i]['short'] = $meta['short'];
+                //Program type
+                switch ($programs[$i]['prog_type']) {
+                    case 1:    
+                        $programs[$i]['prog_type_name'] = 'Master Series';
+                        break;
+                    case 2:
+                        $programs[$i]['prog_type_name'] = 'Documentary';
+                        break;
+                    case 3:
+                        $programs[$i]['prog_type_name'] = 'Docu-Series';
+                        break;                        
+                    default:
+                        $programs[$i]['prog_type_name'] = 'Series';
+                        break;
+                }
                 unset($programs[$i]['meta']);
                 unset($programs[$i]['viewer_id']);
                 unset($programs[$i]['remote_id']);
@@ -417,16 +462,29 @@
         global $wpdb;
         global $post;
         if ($taodb == null) $taodb = tao_set_db();
+        //Force trailers only
+        $trailer = isset($param['trailer']) ? true : false;
         //Load this program's public chapters video
-        $sql = 'SELECT tv.*, tpv.chapter
+        $sql = 'SELECT tv.*, tpv.chapter, tp.prog_type
                 FROM tao_program AS tp
                 LEFT JOIN tao_program_video AS tpv ON tpv.program_ID = tp.ID
                 LEFT JOIN tao_video AS tv ON tv.ID = tpv.video_ID
                 WHERE tp.post_title = "' . $post->post_name . '"
-                AND tpv.chapter > 0
+                AND tpv.chapter <> 0
                 AND tv.status = 1
                 AND tpv.public = 1
                 ORDER BY tpv.chapter ASC';
+        if ($trailer) {
+            $sql = 'SELECT tv.*, tpv.chapter, tp.prog_type
+            FROM tao_program AS tp
+            LEFT JOIN tao_program_video AS tpv ON tpv.program_ID = tp.ID
+            LEFT JOIN tao_video AS tv ON tv.ID = tpv.video_ID
+            WHERE tp.post_title = "' . $post->post_name . '"
+            AND tpv.chapter = -1
+            AND tv.status = 1
+            AND tpv.public = 1
+            ORDER BY tpv.chapter ASC';            
+        }
         $result = $taodb->get_results($sql, ARRAY_A);
         if ($result == null) {
             return array();
@@ -442,7 +500,23 @@
                 $result[$i]['sequence'] = $i;
                 $result[$i] = tao_expand_image_meta($result[$i], 'cover', $result[$i]['cover']);
                 $result[$i]['length'] = tao_duration_to_time($result[$i]['duration']);
-                $result[$i]['chapter'] = 'Chapter ' . $result[$i]['chapter'];
+                if ($result[$i]['chapter'] == -1) {
+                    $result[$i]['chapter'] = 'Trailer';
+                } else {
+                    switch ($result[$i]['prog_type']) {
+                        case 1: //Master Series
+                            $result[$i]['chapter'] = 'Episode ' . $result[$i]['chapter'];
+                            break;
+                        case 2: //Documentary
+                            $result[$i]['chapter'] = 'Documentary';
+                            break;
+                        case 3: //Docu-Series
+                            $result[$i]['chapter'] = 'Episode ' . $result[$i]['chapter'];
+                            break;
+                        default:
+                        $result[$i]['chapter'] = 'Episode ' . $result[$i]['chapter'];
+                    } 
+                }
                 unset($result[$i]['cover']);
             }
             return $result;
@@ -472,7 +546,11 @@
         $public = '';       
         if (is_array($param) && isset($param['public'])) {
             $private = ' AND tpv.public = 1 ';
-        }  
+        }
+        $trailer = ' AND tpv.chapter > 0 ';
+        if (is_array($param) && isset($param['trailer'])) {
+            $trailer = ' AND tpv.chapter <> 0 ';
+        }          
 
         //Load this program's non intro/sample chapters
         $sql = '';
@@ -480,24 +558,24 @@
             //Grab the current user
             $user = wp_get_current_user();
             //Load extended data
-            $sql = 'SELECT tv.*, tpv.chapter, IFNULL(tw.position, 0) AS position, IFNULL(tw.completed, 0) AS completed
+            $sql = 'SELECT tv.*, tpv.chapter, TO_BASE64(tpv.notice) AS notice, tp.prog_type, IFNULL(tw.position, 0) AS position, IFNULL(tw.completed, 0) AS completed
             FROM tao_program AS tp
             LEFT JOIN tao_program_video AS tpv ON tpv.program_ID = tp.ID
             LEFT JOIN tao_video AS tv ON tv.ID = tpv.video_ID
             LEFT JOIN tao_watch AS tw ON (tv.hex_ID = tw.hex_ID AND tw.user_ID = ' . $user->ID . ')
             WHERE tp.post_title = "' . $post->post_name . '"
-            AND tpv.chapter > 0
+            ' . $trailer . '
             AND tv.status = 1
             ' . $private . $public . '
             ORDER BY tpv.chapter ASC';
         } else {
             //Load standard locked data for public
-            $sql = 'SELECT tv.*, tpv.chapter
+            $sql = 'SELECT tv.*, tpv.chapter, tp.prog_type
             FROM tao_program AS tp
             LEFT JOIN tao_program_video AS tpv ON tpv.program_ID = tp.ID
             LEFT JOIN tao_video AS tv ON tv.ID = tpv.video_ID
             WHERE tp.post_title = "' . $post->post_name . '"
-            AND tpv.chapter > 0
+            ' . $trailer . '
             AND tv.status = 1
             ' . $private . $public . '
             ORDER BY tpv.chapter ASC';            
@@ -507,7 +585,23 @@
         $last_video_available = false;
         for ($i = 0; $i < count($result); $i++) {
             $result[$i]['length'] = tao_duration_to_time($result[$i]['duration']);
-            $result[$i]['chapter'] = 'Chapter ' . $result[$i]['chapter'];
+            if ($result[$i]['chapter'] == '-1') {
+                $result[$i]['chapter'] = 'Trailer';
+            } else {
+                switch ($result[$i]['prog_type']) {
+                    case 1: //Master Series
+                        $result[$i]['chapter'] = 'Episode ' . $result[$i]['chapter'];
+                        break;
+                    case 2: //Documentary
+                        $result[$i]['chapter'] = 'Documentary';
+                        break;
+                    case 3: //Docu-Series
+                        $result[$i]['chapter'] = 'Episode ' . $result[$i]['chapter'];
+                        break;
+                    default:
+                    $result[$i]['chapter'] = 'Episode ' . $result[$i]['chapter'];
+                }
+            }
             $result[$i]['parent'] = $post->post_name;
             $result[$i] = tao_expand_image_meta($result[$i], 'cover', $result[$i]['cover']);
             unset($result[$i]['cover']);
@@ -591,6 +685,7 @@
         }
         //Build out the data before returning
         if ($video != null) {
+            $user_id = get_current_user_id();
             //Program Total Duration
             $sql = 'SELECT SUM(tv.duration) AS total, COUNT(tv.ID) AS videos 
                     FROM tao_program AS tp
@@ -614,6 +709,9 @@
             $video['download'] = isset($meta['download']) ? $meta['download'] : '';
             $video['permalink'] = $video['post_title'];
             unset($video['program_meta']);
+            //Determine the state of the download
+            $video['has_downloaded'] = get_user_meta($user_id, '_memberdeck_dl_' . $meta['download'], true);
+            $video['has_latest'] = get_user_meta($user_id, '_memberdeck_dl_latest_' . $meta['download'], true);
             //Add the video to the result
             array_push($result, $video);
         }
@@ -723,6 +821,56 @@
         }
     }
     add_action('memberdeck_onboarding','tao_watch_onboarding', 1, 10);
+
+
+    //Track Counsellor Clicks
+    function tao_track_click() {
+        check_ajax_referer( 'tao_player', 'nonce' );
+        global $taodb;
+        if ($taodb == null) $taodb = tao_set_db();
+        $user_id = get_current_user_id();
+        $email = '';
+        $name = 'Anon';
+        if ($user_id != 0) {
+            $user_meta = get_userdata($user_id);
+            $email = $user_meta->user_email;
+            $name = $user_meta->display_name;
+        }
+        $result = array(
+            'error' => true
+        );
+        $ID = isset($_REQUEST['ID']) ? intval($_REQUEST['ID']) : false;
+        $URL = isset($_REQUEST['URL']) ? sanitize_text_field($_REQUEST['URL']) : false;
+        if ($ID != false && $URL != false) {
+            $valid_expert = $taodb->get_row('SELECT ID FROM tao_counsellor WHERE ID = ' . $ID);
+            if ($valid_expert != null) {
+                $meta = array(
+                    'UserID' => $user_id,
+                    'UserEmail' => $email, 
+                    'Name' => $name,
+                    'URL' => $URL,
+                    'IP' => tao_get_client_ip(),
+                    'UA' => $_SERVER['HTTP_USER_AGENT']
+                );
+                $taodb->insert(
+                    'tao_counsellor_click',
+                    array(
+                        'counsellor_ID' => $valid_expert->ID,
+                        'clicked' => current_time('mysql'),
+                        'meta' => json_encode($meta)
+                    ),
+                    array(
+                        '%d', '%s', '%s'
+                    )
+                );
+            }
+        }
+        echo json_encode($result);
+        exit();
+    }
+    add_action('wp_ajax_tao_click', 'tao_track_click');
+    add_action('wp_ajax_priv_tao_click', 'tao_track_click');
+
 
     //Track watching
     function tao_watch() {

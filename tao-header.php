@@ -46,6 +46,12 @@
     //External script such as Cookie consent
     function toa_enqueue_scripts() {
         $json = file_get_contents(plugin_dir_path(__FILE__) .  '/cookie.json');
+        //Global scripts such as the affiliate programme
+        wp_enqueue_script( 'toaglobal', plugin_dir_url(__FILE__) . 'js/super.js', array(), '1', true);
+        $nonce = wp_create_nonce('tao_global');
+        $ajax = admin_url('admin-ajax.php');
+        wp_add_inline_script( 'toaglobal', 'window.toaglobal={n:"' . $nonce . '",u:"' . $ajax . '"}' );
+
         //Cookie consent from CDN
         wp_enqueue_style( 'cc', '//cdn.jsdelivr.net/npm/cookieconsent@3/build/cookieconsent.min.css', array(), '3' );
         wp_enqueue_script( 'cc', '//cdn.jsdelivr.net/npm/cookieconsent@3/build/cookieconsent.min.js', array(), '4', true);
@@ -76,5 +82,58 @@ height=\"0\" width=\"0\" style=\"display:none;visibility:hidden\"></iframe></nos
 <!-- End Google Tag Manager (noscript) -->";		
 	}
     add_action( 'x_before_site_begin', 'toa_tag_manager_no_script', 1, 0 );
+
+
+    //Open function to check affiliate is valid
+    function toa_affcheck() {
+        check_ajax_referer( 'tao_global', 'n' );
+        $result = array(
+            'error' => false,
+            'result' => false
+        );
+        $aff = isset($_REQUEST['affilate']) ? strtolower(sanitize_text_field($_REQUEST['affilate'])) : '';
+        //Check if there's a transient
+        if (strlen($aff) >= 3 && strlen($aff) <= 30) {
+            $valid_add = get_transient('tao_aff_' . $aff);
+            if ($valid_add != '') {
+                //Found a cached result, return true
+                if ($valid_add == 1) $result['result'] = $aff;
+            } else {
+                //Check with ThriveCart if this is a valid affiliate ID
+                $default = get_option('mjs_gcc_defaults', array());
+                $thrive_api_token = isset($default['thrive_api_token']) ? $default['thrive_api_token'] : false;
+                if ($thrive_api_token != false) {
+                    $search = tao_get_tc($thrive_api_token, 'affiliates', 'perPage=1&page=1&query=' . urlencode($aff), 'GET');
+                    if (property_exists($search,'error')) {
+                        //Thrive is not configured yet!
+                        error_log('Affilates not configured: ' . $search->error);
+                    } else {
+                        //Check the affiliate is correct
+                        if (property_exists($search,'affiliates')) {
+                            $found = false;
+                            foreach ($search->affiliates as $a) {
+                                if ($a->affiliate_id == $aff) {
+                                    $found = $a->affiliate_id;
+                                    break;
+                                }
+                            }
+                            if ($found != false) {
+                                $result['result'] = $found;
+                                //Remember the result for 7 days
+                                set_transient('tao_aff_' . $aff, 1, WEEK_IN_SECONDS);
+                            } else {
+                                //Remeber the negative result for a day
+                                set_transient('tao_aff_' . $aff, 0, DAY_IN_SECONDS);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        echo json_encode($result);
+        exit();
+    }
+    add_action('wp_ajax_nopriv_affcheck', 'toa_affcheck');
+    add_action('wp_ajax_affcheck', 'toa_affcheck');
 
 ?>

@@ -1,7 +1,7 @@
 jQuery(document).ready(function() {
-    console.log('TAO Global 1.0.0');
+  console.log('TAO Global 1.0.0');
 
-    //Testimonials
+  //Testimonials
 	jQuery('.tao_slider_test').each(function() {
 		//Power first slider
 		jQuery('.tao_slider_test').slick({
@@ -63,6 +63,44 @@ jQuery(document).ready(function() {
 		});
 	});    
 
+  jQuery('.tao_docs_slider').each(function() {
+		//Power first slider
+		jQuery('.tao_docs_slider').slick({
+            dots: true,
+            appendDots: '#tao_slider_doc_nav',
+            appendArrowsNext: '#tao_slider_doc_nav_next',
+            appendArrowsPrev: '#tao_slider_doc_nav_prev',
+            infinite: true,
+            speed: 1000,
+            slidesToShow: 1,
+            slidesToScroll: 1,
+            adaptiveHeight: false,
+            autoplay: true,
+            autoplaySpeed: 5000,
+            prevArrow: '<button type="button" class="tao_slider_btn slick-prev"><i class="x-icon" aria-hidden="true" data-x-icon-l=""></i></button>',
+            nextArrow: '<button type="button" class="tao_slider_btn slick-next"><i class="x-icon" aria-hidden="true" data-x-icon-l=""></i></button>',            
+            responsive: [
+                {
+                  breakpoint: 10000,
+                  settings: "unslick"
+                },
+                {
+                  breakpoint: 979,
+                  settings: {
+                    slidesToShow: 2,
+                    slidesToScroll: 1
+                  }
+                },
+                {
+                  breakpoint: 767,
+                  settings: {
+                    slidesToShow: 1,
+                    slidesToScroll: 1
+                  }
+                }
+              ]
+		});
+	});
 
     /* Program Event's Component */
     //Dynamically labal the components
