@@ -199,7 +199,7 @@ MAKE ALL TAXONOMIES INVISIBLE BEFORE GOING LIVE :)
             'hierarchical'          => true,
             'labels'                => $labels,
             'publicly_queryable'    => true,
-            'show_ui'               => false,
+            'show_ui'               => true,
             'show_in_rest'          => true,
             'show_admin_column'     => false,
             'update_count_callback' => '_update_post_term_count',

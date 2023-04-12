@@ -45,17 +45,17 @@
 
     //External script such as Cookie consent
     function toa_enqueue_scripts() {
-        $json = file_get_contents(plugin_dir_path(__FILE__) .  '/cookie.json');
+        //$json = file_get_contents(plugin_dir_path(__FILE__) .  '/cookie.json');
         //Global scripts such as the affiliate programme
-        wp_enqueue_script( 'toaglobal', plugin_dir_url(__FILE__) . 'js/super.js', array(), '1', true);
+        wp_enqueue_script( 'toaglobal', plugin_dir_url(__FILE__) . 'js/super.js', array(), '4', true);
         $nonce = wp_create_nonce('tao_global');
         $ajax = admin_url('admin-ajax.php');
         wp_add_inline_script( 'toaglobal', 'window.toaglobal={n:"' . $nonce . '",u:"' . $ajax . '"}' );
 
         //Cookie consent from CDN
-        wp_enqueue_style( 'cc', '//cdn.jsdelivr.net/npm/cookieconsent@3/build/cookieconsent.min.css', array(), '3' );
-        wp_enqueue_script( 'cc', '//cdn.jsdelivr.net/npm/cookieconsent@3/build/cookieconsent.min.js', array(), '4', true);
-        wp_add_inline_script( 'cc', 'window.addEventListener("load", function(){window.cookieconsent.initialise(' . $json . ')});' );       
+        //wp_enqueue_style( 'cc', '//cdn.jsdelivr.net/npm/cookieconsent@3/build/cookieconsent.min.css', array(), '3' );
+        //wp_enqueue_script( 'cc', '//cdn.jsdelivr.net/npm/cookieconsent@3/build/cookieconsent.min.js', array(), '4', true);
+        //wp_add_inline_script( 'cc', 'window.addEventListener("load", function(){window.cookieconsent.initialise(' . $json . ')});' );       
     }
     add_action('wp_enqueue_scripts', 'toa_enqueue_scripts');
 
@@ -135,5 +135,37 @@ height=\"0\" width=\"0\" style=\"display:none;visibility:hidden\"></iframe></nos
     }
     add_action('wp_ajax_nopriv_affcheck', 'toa_affcheck');
     add_action('wp_ajax_affcheck', 'toa_affcheck');
+
+
+    //Process the webhook for Sendy
+    function tao_webhook_sendy($source) {
+        $entityBody = file_get_contents('php://input');
+        if ($entityBody != '') {
+            $data = json_decode($entityBody, true);
+            //Add to the main list
+            $args = array(
+                'method' => 'POST',
+                'headers'  => array(
+                    'Content-type: application/x-www-form-urlencoded'
+                ),
+                'sslverify' => false,		
+                'body' => array(		
+                    'api_key' => TAO_SENDY_API,
+                    'name' => isset($data['first_name']) ? $data['first_name'] : '', 
+                    'email' => isset($data['email']) ? $data['email'] : '',
+                    'list' => $source,
+                    'boolean' => "true"	
+                )	
+            );	
+            //Submit subscription
+            $result = wp_remote_post( TAO_SENDY, $args);
+            if ( is_wp_error( $result ) ) {		
+                error_log(print_r($result, true));
+            }
+        }
+        //Return ok
+        echo json_encode(array('result' => true));
+        exit();
+    }
 
 ?>

@@ -1,5 +1,5 @@
 jQuery(document).ready(function() {
-    console.log('TAO Super 1.0.0');
+    console.log('TAO Super 1.0.2');
 	window.tao_parseQuery = function(qstr) {
 		var query = {};
 		var a = qstr.substr(1).split('&');
@@ -52,7 +52,102 @@ jQuery(document).ready(function() {
             },
             complete: function() { cqs_progress = false; }
         }); 
-    }    
+    } 
+    //Modal helper functions
+    window.sm_bg_close = true; 
+    jQuery('.x-modal-bg').click(function() {
+       	return window.sm_bg_close;
+    });
+    jQuery('.x-off-canvas-bg').click(function() {
+       	return window.sm_bg_close;
+    });  
+    window.sm_toggle = function(status, model_class, cb = '', bgclose = true) {
+        setTimeout(function(){
+            var id = jQuery('.' + model_class).attr('data-x-toggleable');
+            var isModalOpen = window.xToggleGetState( id );
+            if (status == true) {
+              	window.sm_bg_close = bgclose;
+                if (!isModalOpen) {
+                    window.xToggleUpdate( id, status );
+                }
+            } else {
+                window.sm_bg_close = true;
+                window.xToggleUpdate( id, status );
+            }
+            if (cb != "") cb();
+        }, 100); 
+    } 
+    //Cookies
+    function init_banner() {
+        sm_toggle(true, 'tao_cookie_panel', '', false); 
+    }
+    jQuery('.cookie_law_btn').on('click', function(){
+        init_banner();
+    });
+    jQuery('.tao_cookie_btn').on('click', function(){
+        var c = jQuery(this).data('policy');
+        tao_setCookie('tao_gdpr', c, 365, 'thriveasone.ca');
+        tao_gtag_status(c);
+        sm_toggle(false, 'tao_cookie_panel');
+    });
+    //Determine the laws before we continue
+    function init_cookie() {
+        var choice = tao_getCookie('tao_gdpr');
+        var law = tao_getCookie('tao_laws');
+        if (choice == '') {
+            if (law == '') {
+                tao_ajaxHandler({
+                    data: {
+                        action: 'tao_country_code'
+                    }
+                }, function(data){
+                    law = data.res.countryCode;
+                    tao_setCookie('tao_laws', law, 30, 'thriveasone.ca');
+                    if (cookie_law(law)) {
+                        init_banner();
+                    } else {
+                        tao_setCookie('tao_auto', 'true', 365, 'thriveasone.ca');
+                        tao_setCookie('tao_gdpr', 'allow', 365, 'thriveasone.ca');
+                        tao_gtag_status('allow');
+                    }
+                });
+            } else {
+                if (cookie_law(law)) {
+                    init_banner();
+                }
+            }
+        } else {
+            tao_gtag_status(choice);
+        }
+        cookie_law(law);
+    }
+    init_cookie();
+    //Ensure GTAG obeys their decision   
+    function tao_gtag_status(status) {
+        var v = false;
+        if (status == "allow") {
+            v = true;
+        }
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+            "tao_consent": v,
+            "event": "consent"
+        });
+    }
+    function cookie_law(law) {
+        //Turn cookie features on/off
+        var apply = false;
+        var enable = ["CA","AT","BE","BG","HR","CZ","CY","DK","EE","FI","FR","DE","EL","HU","IE","IT","LV","LT","LU","MT","NL","PL","PT","SK","ES","SE","GB","UK","GR","EU"]
+        if (enable.includes(law)) {
+            apply = true;
+            jQuery('.cookie_law_btn').show();
+        } else {
+            jQuery('.cookie_law_btn').hide();
+        }
+        return apply;
+    }
+
+    //Affiliates
     function check_affiliate() {
         var search = tao_parseQuery(window.location.search);
         if (search.aff != undefined) {
@@ -133,5 +228,18 @@ jQuery(document).ready(function() {
         } else {
             return true;
         }    
+    });
+    jQuery('.tao_sbtn').on('click', function(e){
+        if (jQuery(this).hasClass('tao_in_modal')) {
+            if (vimeoPlayer != null && vimeoPlayer != false) {
+                vimeoPlayer.pause();
+                sm_toggle(false, 'tao_sample_modal');               
+            }
+        }
+        var t = jQuery(this).data('scroll');
+        var s = jQuery(this).data('speed');
+        jQuery('html,body').animate({
+            scrollTop: jQuery('#' + t).offset().top
+        }, s);
     });
 });

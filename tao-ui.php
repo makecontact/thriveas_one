@@ -1,7 +1,7 @@
 <?php
 
    
-//Query vars for TAO
+    //Query vars for TAO
     function tao_query_vars( $qvars ) {
         $qvars[] = 'tao';
         return $qvars;
@@ -33,9 +33,22 @@
 
     //Embeds the libraries for the player
     function tao_player_embed($atts) {
+        $production = true;
+        if (WP_DEBUG == true) {
+            $user_id = get_current_user_id();
+            if (in_array($user_id, TAO_DEVELOPERS)) {
+                $production = false;
+            }
+        }
         //Queue up libraries
         wp_enqueue_script( 'tao_vimeo', 'https://player.vimeo.com/api/player.js', 'jquery', '1.0.0', false);
-        wp_enqueue_script( 'tao_player', plugin_dir_url(__FILE__) . 'js/tao_player.js', 'jquery', '1.0.0', false);
+        if ($production) {
+            wp_enqueue_script( 'tao_player', plugin_dir_url(__FILE__) . 'js/tao_player.js', 'jquery', TAO_PLAYER_LIB, false);
+        } else {
+            //Force it load with every request in debug mode
+            $vid = wp_rand(0, 2147483647);
+            wp_enqueue_script( 'tao_player', plugin_dir_url(__FILE__) . 'js/tao_player.beta.js', 'jquery', TAO_PLAYER_LIB . $vid, false);
+        }
         //Output essential script data
         $nonce = wp_create_nonce('tao_player');
         //Add essential data to the script
@@ -111,7 +124,8 @@
                 'streaming' => $program->streaming,
                 'full_streaming' => $program->full_streaming,
                 'vimeo' => '',
-                'teaser' => 0
+                'teaser' => 0,
+                'hide_title' => 0
             );
             //Landscape photo
             $p = tao_expand_image_meta($p, 'landscape', $meta['landscape']);
@@ -161,6 +175,11 @@
                 $p['expert_name'] = $expert_name;
                 //Overide the title if set
                 if ($meta['sub_title'] != '') $p['expert_name'] = $meta['sub_title'];
+                //Show the main title instead and flag to hide the title
+                if ($p['expert_name'] == '') {
+                    $p['expert_name'] = $p['title'];
+                    $p['hide_title'] = 1;
+                }
             }
             //Watch record
             if (is_user_logged_in()) {
@@ -346,6 +365,7 @@
         global $post;
         
         //Control which params are returned in the search
+        $exclude_cats = isset($param['exclude']) ? $param['exclude'] : array();
         $include_cats = isset($param['categories']) ? $param['categories'] : array();
         $include_type = isset($param['type']) ? $param['type'] : array();
         if ($taodb == null) $taodb = tao_set_db();
@@ -365,6 +385,9 @@
         }
         if (!empty($include_type)) {
             $filter = ' AND p.prog_type IN (' . implode(',', $include_type) . ') ';
+        }
+        if (!empty($exclude_cats)) {
+            $filter = ' AND c.ID NOT IN (' . implode(',', $exclude_cats) . ') ';
         }
         //Run search
         $sql = 'SELECT p.*, DATE_FORMAT(p.golive, "%b %Y") AS streaming, DATE_FORMAT(p.golive, "%M %Y") AS full_streaming, c.name AS category
@@ -637,6 +660,9 @@
                 }
             }
         }
+
+        //tao_error($result);
+
         return $result;
     }
     add_filter('cs_looper_custom_chapters', 'tao_chapters', 10, 2);
@@ -978,7 +1004,7 @@
             $star = 'stars';
             if ($rating == 1) $star = 'star';
             //Email
-            $headers[] = 'From: ' . get_bloginfo('name') . ' <' . get_bloginfo('admin_email') . '>';
+            $headers[] = 'From: ' . get_bloginfo('name') . ' <' . TAO_FEEDBACK_EMAIL . '>';
             $headers[] = 'Content-Type: text/html; charset=UTF-8';
             $html  = '<p>Hey Thrive,</p>';
             $html .= '<p>' . $meta->first_name . ' ('. $user->user_email . ') just left feedback for your program titled <strong>' . $program->title . '</strong>.</p>';
@@ -991,7 +1017,7 @@
             $html .= '<p>' . $message . '</p></div>';
             $html .= '<p>All the best,</p><p><a href="' . site_url() . '">' . get_bloginfo('name') . '</a></p>';
             //Deliver the email
-            wp_mail( get_bloginfo('admin_email'), '[Feedback] ' . $$title, $html, $headers );
+            $r = wp_mail(TAO_FEEDBACK_EMAIL , '[Feedback] ' . $title, $html, $headers);
             $result = array(
                 'error' => false,
                 'message' => 'Sent'

@@ -1,9 +1,40 @@
+console.log('Player 1.0.5');
 jQuery(document).ready(function() {
 
     window.vimeoPlayer = false;
     window.last_video_obj = false;
     window.new_video = false;
     window.last_point = false;
+
+console.log('beta player');
+
+    function exIntID(id) {
+        const regex = /\d+$/; // Regular expression to match an integer at the end of the string
+        const match = id.match(regex); // Apply regex to the input id string
+        if (match) {
+            return parseInt(match[0], 10); // If there's a match, parse it to an integer and return it
+        } else {
+            return null; // If there's no match, return null
+        }
+    }
+    function copyDataAttributes(sourceElem, targetElem) {
+        // Iterate through the source element's attributes
+        for (let i = 0; i < sourceElem.attributes.length; i++) {
+            const attr = sourceElem.attributes[i];
+            // Check if the attribute name starts with 'data-'
+            if (attr.name.startsWith('data-')) {
+                // Set the target element's attribute with the same name and value
+                targetElem.setAttribute(attr.name, attr.value);
+            }
+        }
+    }
+    //Version 6.2 Patch
+    jQuery('.tao_play_this_chapter').each(function(item, index){
+        copyDataAttributes(
+            document.querySelector('#tptc_' + exIntID(jQuery(index).prop('id'))), 
+            document.querySelector( '#' + jQuery(index).prop('id') )
+        );
+    });
 
     //Cookie helper functions
 	window.tao_delete_cookie = function(cname) {
@@ -31,6 +62,17 @@ jQuery(document).ready(function() {
 		return "";
 	}
 
+    //Download available
+    jQuery('.tao_download_model').each(function(){
+        sm_toggle(true, 'tao_download_model');
+        jQuery('.tao_close_download').on('click', function(){
+            sm_toggle(false, 'tao_download_model');
+        });
+        jQuery('.tao_download_btn_close').on('click', function(){
+            sm_toggle(false, 'tao_download_model');
+        });        
+    });
+
     function tao_show_video(obj) {
         tao_setup_escape();
         //Get the data from the object
@@ -48,8 +90,13 @@ jQuery(document).ready(function() {
                 jQuery('#video_viewer').data('hex', vo.data('hex'));
                 jQuery('#video_viewer').data('watch', vo.data('watch'));
             }
-            tao_show_sample();
-            tao_play_video(vo, 'video_viewer');
+            sm_toggle(true, 'tao_sample_modal', function(){
+                if (vo.hasClass('tao_holding')) {
+                   tao_play_video(vo, 'holding_viewer');
+                } else {
+                    tao_play_video(vo, 'video_viewer');
+                }
+            });
         }
     }
 
@@ -86,6 +133,9 @@ jQuery(document).ready(function() {
                 'autoplay': true
             }
         );
+        vimeoPlayer.on('loaded', function(){
+            jQuery('#video_viewer').css('background', '#f8f3ec');
+        });
         //Set the position
         var pos = jQuery(vo).data('position');
         if (pos != undefined && pos != '') {
@@ -178,20 +228,29 @@ jQuery(document).ready(function() {
                     var permalink = jQuery('#tao_permalink').val();
                     var feed = tao_get_cookie('tao-feedback-' + permalink);
                     if (feed == '') {
-                        var id = jQuery('.tao_feedback_modal').attr('data-x-toggleable');
-                        var isModalOpen = window.xToggleGetState( id );
-                        if (!isModalOpen) {
-                            window.xToggleUpdate( id, true );
-                        }
+                        sm_toggle(true, 'tao_feedback_modal');
                     }
                 } else {
-                    //Open the autoplay modal
-                    var id = jQuery('.tao_autoplay_modal').attr('data-x-toggleable');
-                    var isModalOpen = window.xToggleGetState( id );  
-                    if (!isModalOpen) { 
-                        window.xToggleUpdate( id, true );
+                    //Set up autoplay modal with optional notification
+                    if (tao_chapters[next].notice != '' && tao_chapters[next].notice.body != '' && tao_chapters[next].notice.title != '') {
+                        //Display notice and hide autoplay heading
+                        jQuery('.tao_auto_mode').hide();
+                        jQuery('.tao_notice_mode').show();
+                        jQuery('#tao_notice_headline').html(tao_chapters[next].notice.title);
+                        jQuery('#tao_notice_body').html(tao_chapters[next].notice.body);
+                        //Open the modal
+                        sm_toggle(true, 'tao_autoplay_modal');    
+                    } else {
+                        //Display autoplay heading & hide notice 
+                        jQuery('.tao_auto_mode').show();
+                        jQuery('.tao_notice_mode').hide();
+                        //Open the autoplay modal with a countdown
+                        sm_toggle(true, 'tao_autoplay_modal', function() {
+                            window.autoplay_counter = 8;
+                            jQuery('#auto_count').html(autoplay_counter);
+                            tao_autoplay_timer = setTimeout(tao_autoplay_interval, 1000);
+                        });
                     }
-                    tao_autoplay_timer = setTimeout(tao_autoplay_interval, 1000);
                 }
             });
         }
@@ -222,13 +281,10 @@ jQuery(document).ready(function() {
     //Continue button
     jQuery('.tao_advance_chapter').on('click', function(){
         //Clear countdown and close modal
-        var id = jQuery('.tao_autoplay_modal').attr('data-x-toggleable');
-        var isModalOpen = window.xToggleGetState( id );
-        if (isModalOpen) {
-            window.xToggleUpdate( id, false );
+        sm_toggle(false, 'tao_autoplay_modal', function(){
             clearTimeout(tao_autoplay_timer);
-        }
-        tao_play_next();
+            tao_play_next();
+        });        
     });
 
     function tao_play_next() {
@@ -293,6 +349,7 @@ jQuery(document).ready(function() {
 
     //Assign trigger to video players
     jQuery('.tao_player_go').on('click', function() {
+        jQuery('#video_viewer').css('background', '#0a0b09');
         tao_show_video(this);
     });
 
@@ -326,15 +383,11 @@ jQuery(document).ready(function() {
 
     //Close modal, stop playing
     jQuery('.tao_close_sample').on('click', function(){
-        var id = jQuery('.tao_sample_modal').attr('data-x-toggleable');
-        var isModalOpen = window.xToggleGetState( id );
-        if (isModalOpen) {
-            window.xToggleUpdate( id, false );
-        }
         //Pause the video
         if (vimeoPlayer) {
             vimeoPlayer.pause();
-        }        
+        }
+        sm_toggle(false, 'tao_sample_modal');          
     });
 
     //Play public chapter
@@ -356,15 +409,12 @@ jQuery(document).ready(function() {
 
     //Confirm skip order play button
     jQuery('.tao_play_anyhow_btn').on('click', function(){
-        var video = jQuery(this).data('video');
-        var id = jQuery('.tao_order_modal_' + video).attr('data-x-toggleable');
-        var isModalOpen = window.xToggleGetState( id );
-        if (isModalOpen) {
-          window.xToggleUpdate( id, false );
-        }
-        //Set it to opened
-        jQuery('#tao_play_' + video).data('opened', 1);
-        tao_viewer_play_chapter(this);
+        var btn = this;
+        var video = jQuery(btn).data('video');
+        sm_toggle(false, 'tao_order_modal_' + video, function(){
+            jQuery('#tao_play_' + video).data('opened', 1);
+            tao_viewer_play_chapter(btn);
+        });
         return false;
     });
     //Viewer specific
@@ -475,27 +525,16 @@ jQuery(document).ready(function() {
         }
     });      
     jQuery('.tao_advance_cancel').on('click', function(){
-        var id = jQuery('.tao_autoplay_modal').attr('data-x-toggleable');
-        var isModalOpen = window.xToggleGetState( id );
-        if (isModalOpen) {
-            window.xToggleUpdate( id, false );
+        sm_toggle(false, 'tao_autoplay_modal', function(){
             clearTimeout(tao_autoplay_timer);
-        }
+        });
     });   
     jQuery('.tao_cancel_btn').on('click', function(){
         var video = jQuery(this).data('video');
-        var id = jQuery('.tao_order_modal_' + video).attr('data-x-toggleable');
-        var isModalOpen = window.xToggleGetState( id );
-        if (isModalOpen) {
-            window.xToggleUpdate( id, false );
-        }
+        sm_toggle(false, 'tao_order_modal_' + video);
     });
     jQuery('.tao_nothanks_btn').on('click', function(){
-        var id = jQuery('.tao_continue_modal').attr('data-x-toggleable');
-        var isModalOpen = window.xToggleGetState( id );
-        if (isModalOpen) {
-            window.xToggleUpdate( id, false );
-        }
+        sm_toggle(false, 'tao_continue_modal');
         //Set dismissed session cookie
         tao_set_cookie('tao-cw-' + jQuery(this).data('permalink'), 1, 0);
     });
@@ -530,10 +569,11 @@ jQuery(document).ready(function() {
         tao_chapters.push({
             'hex_ID': jQuery(this).data('hex'),
             'chapter': jQuery(this).data('chapter'),
-            'obj': 'tao_play_' + jQuery(this).data('video') 
+            'obj': 'tao_play_' + jQuery(this).data('video'),
+            'notice':  (jQuery(this).data('notice') != "") ? JSON.parse(atob(jQuery(this).data('notice'))) : '',
         });
     });
-
+    
     //Continue watching prompt?
     if (jQuery('.tao_opened_video').length != 0) {
         //Session based dimissal cookie 
@@ -541,11 +581,7 @@ jQuery(document).ready(function() {
         var c = tao_get_cookie('tao-cw-' + p);
         if (c != 1) {
             //Ask
-            var id = jQuery('.tao_continue_modal').attr('data-x-toggleable');
-            var isModalOpen = window.xToggleGetState( id );
-            if (!isModalOpen) {
-                window.xToggleUpdate( id, true );
-            }
+            sm_toggle(true, 'tao_continue_modal');
         }
     }
 
@@ -597,11 +633,7 @@ jQuery(document).ready(function() {
         jQuery(this).data('selected', true);
     });
     jQuery('.tao_submit_done').on('click', function(){
-        var id = jQuery('.tao_feedback_modal').attr('data-x-toggleable');
-        var isModalOpen = window.xToggleGetState( id );
-        if (isModalOpen) {
-            window.xToggleUpdate( id, false );
-        }
+        sm_toggle(false, 'tao_feedback_modal');
     });
     jQuery('.tao_submit_feedback').on('click', function(){
         jQuery.ajax(tao_player.url, {
@@ -624,6 +656,33 @@ jQuery(document).ready(function() {
                 tao_set_cookie('tao-feedback-' + permalink, 1, 365);
             }
         });
+    });
 
+    window.outbound = false;
+    jQuery('.tao_clicked').on('click', function(){
+        if (outbound == false) {
+          outbound = true;
+          var btn = this;  
+          jQuery(btn).css('cursor','wait');
+          jQuery(btn).css('opacity','0.5');
+          jQuery.ajax(tao_player.url, {
+              timeout: 60000,
+              data: {
+                  'action': 'tao_click',
+                  'nonce': tao_player.nonce,
+                  'ID': jQuery(this).data('cid'),
+                  'URL': jQuery(this).prop('href')
+              },
+              type: "POST",
+              success: function(response) {
+              },
+              complete: function() {
+                jQuery(btn).css('cursor','pointer');
+                jQuery(btn).css('opacity','1');
+                window.location.href = jQuery(btn).prop('href')
+              }
+          });
+        }
+        return false;
     });
 });

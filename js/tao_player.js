@@ -1,27 +1,38 @@
-console.log('Player 1.0.2');
+console.log('Player 1.0.5');
 jQuery(document).ready(function() {
-
-    window.sm_toggle = function(status, model_class, cb = '') {
-        setTimeout(function(){
-            var id = jQuery('.' + model_class).attr('data-x-toggleable');
-            var isModalOpen = window.xToggleGetState( id );
-            if (status == true) {
-                if (!isModalOpen) {
-                    window.xToggleUpdate( id, status );
-                }
-            } else {
-                window.xToggleUpdate( id, status );
-            }
-            if (cb != "") {
-                cb();
-            }
-        }, 100); 
-    }
 
     window.vimeoPlayer = false;
     window.last_video_obj = false;
     window.new_video = false;
     window.last_point = false;
+
+    function exIntID(id) {
+        const regex = /\d+$/; // Regular expression to match an integer at the end of the string
+        const match = id.match(regex); // Apply regex to the input id string
+        if (match) {
+            return parseInt(match[0], 10); // If there's a match, parse it to an integer and return it
+        } else {
+            return null; // If there's no match, return null
+        }
+    }
+    function copyDataAttributes(sourceElem, targetElem) {
+        // Iterate through the source element's attributes
+        for (let i = 0; i < sourceElem.attributes.length; i++) {
+            const attr = sourceElem.attributes[i];
+            // Check if the attribute name starts with 'data-'
+            if (attr.name.startsWith('data-')) {
+                // Set the target element's attribute with the same name and value
+                targetElem.setAttribute(attr.name, attr.value);
+            }
+        }
+    }
+    //Version 6.2 Patch
+    jQuery('.tao_play_this_chapter').each(function(item, index){
+        copyDataAttributes(
+            document.querySelector('#tptc_' + exIntID(jQuery(index).prop('id'))), 
+            document.querySelector( '#' + jQuery(index).prop('id') )
+        );
+    });
 
     //Cookie helper functions
 	window.tao_delete_cookie = function(cname) {

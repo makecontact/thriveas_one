@@ -17,21 +17,29 @@ if ( ! defined( 'WPINC' ) ) {
 
 //Definitions
 define('TOA_GTM_TAG', 'GTM-KZN2NCH'); //Google Tag Manager
-define('THRIVECART_API_MODE', 'test'); //live or test
+define('THRIVECART_API_MODE', 'live'); //live or test
 define('MEMBERDECK_CANCELLED_GROUP', 3); //inside tao_profile.php we manually add them cancelled
 define('MEMBERDECK_SUBSCRIBED_GROUP', 2); //inside tao_profile.php we use this to flag it as a new account
 
 //Which Sendy install to use for the email list?
 define('TAO_SENDY_LIST', '7ftc2QvpKbR6S8os0ZVLoQ');
+define('TAO_SENDY_LIST_REAL', 'DcuFxHJW55U22aLRb5sLLg');
 define('TAO_SENDY', 'https://email.thriveasone.ca/subscribe');
 define('TAO_SENDY_API','9EI3VMc5Q9zlXuD55Mxv');
 define('MAXMIND_LOCATION', '/var/www/thriveasone/wp-content/uploads/maxmind/GeoIP/GeoLite2-City.mmdb');
 define('TAO_GDPR_ZONES', array("AL","AD","AM","AT","BY","BE","BA","BG","CH","CY","CZ","DE","DK","EE","ES","FO","FI","FR","GB","GE","GI","GR","HU","HR","IE","IS","IT","LI","LT","LU","LV","MC","MK","MT","NO","NL","PL","PT","RO","RU","SE","SI","SK","SM","TR","UA","VA"));
 
+//JavaScript Player Lib
+define('TAO_PLAYER_LIB', '1.0.5');
+
 //CMS
 define('REMOTE_DB_PASS','uBqh%Ob040pKW8jNC863');
 define('REMOTE_DB_USER','cms');
 define('REMOTE_DB_NAME','cms');
+
+define('TAO_FEEDBACK_EMAIL', 'support@thriveasone.ca');
+
+define('TAO_DEVELOPERS', array(2));
 
 //Defaults
 define('TAO_DEFAULT_EXPERT', 'Thrive Community');
@@ -53,4 +61,39 @@ if (is_admin()) {
 		));		
 	}
 }
+
+//URLs and configuration
+function tao_qv($vars) {
+	$vars[] = "__sendy";
+	return $vars;
+}
+function tao_csr() {	
+	add_rewrite_rule('webhook/sendy/?([^/]*)', 'index.php?__sendy=$matches[1]', 'top');
+	if ( get_option( 'tao_url_rules' ) != '1.0.0' ) {
+		flush_rewrite_rules();
+		update_option( 'tao_url_rules', '1.0.0' );
+	}
+}
+function tao_request() {
+	global $wp, $wpdb;	
+	if ( isset($wp->query_vars['__sendy'])) {
+		tao_webhook_sendy($wp->query_vars['__sendy']);
+	}
+}
+add_action('init', 'tao_csr');
+add_filter('query_vars', 'tao_qv');
+add_action('parse_request','tao_request');
+
+//Error helper function
+function tao_error($error) {
+    if (WP_DEBUG == true) {
+        $user_id = get_current_user_id();
+        if (in_array($user_id, TAO_DEVELOPERS)) {
+            $debug_file = WP_CONTENT_DIR . '/debug.log';
+            $formatted_error = date('Y-m-d H:i:s') . ' ' . print_r($error, true) . PHP_EOL;
+            file_put_contents($debug_file, $formatted_error, FILE_APPEND);
+        }
+    }
+}
+
 ?>
