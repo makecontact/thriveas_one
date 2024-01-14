@@ -43,19 +43,13 @@
         return $ip;
     }
 
-    //External script such as Cookie consent
+    //External scripts
     function toa_enqueue_scripts() {
-        //$json = file_get_contents(plugin_dir_path(__FILE__) .  '/cookie.json');
-        //Global scripts such as the affiliate programme
+        //Global library for all features on this website
         wp_enqueue_script( 'toaglobal', plugin_dir_url(__FILE__) . 'js/super.js', array(), '4', true);
         $nonce = wp_create_nonce('tao_global');
         $ajax = admin_url('admin-ajax.php');
-        wp_add_inline_script( 'toaglobal', 'window.toaglobal={n:"' . $nonce . '",u:"' . $ajax . '"}' );
-
-        //Cookie consent from CDN
-        //wp_enqueue_style( 'cc', '//cdn.jsdelivr.net/npm/cookieconsent@3/build/cookieconsent.min.css', array(), '3' );
-        //wp_enqueue_script( 'cc', '//cdn.jsdelivr.net/npm/cookieconsent@3/build/cookieconsent.min.js', array(), '4', true);
-        //wp_add_inline_script( 'cc', 'window.addEventListener("load", function(){window.cookieconsent.initialise(' . $json . ')});' );       
+        wp_add_inline_script( 'toaglobal', 'window.toaglobal={n:"' . $nonce . '",u:"' . $ajax . '"}' );      
     }
     add_action('wp_enqueue_scripts', 'toa_enqueue_scripts');
 
