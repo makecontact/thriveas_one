@@ -16,7 +16,8 @@ if ( ! defined( 'WPINC' ) ) {
 }
 
 //Definitions
-define('TOA_GTM_TAG', 'GTM-KZN2NCH'); //Google Tag Manager
+define('TOA_GTM_TAG', 'GTM-T4LLP8W5'); //Google Tag Manager
+
 define('THRIVECART_API_MODE', 'live'); //live or test
 define('MEMBERDECK_CANCELLED_GROUP', 3); //inside tao_profile.php we manually add them cancelled
 define('MEMBERDECK_SUBSCRIBED_GROUP', 2); //inside tao_profile.php we use this to flag it as a new account
@@ -37,14 +38,6 @@ define('TAO_AC_CLEARMIND_ENDPOINT', 'clearmind91109');
 define('TAO_AC_CLEARMIND_APIKEY', '89243a99d0f314f5ee187b4b2d10cd57aa70e79d5e6ccf3d055135d4e5cd24489570e13f');
 define('TAO_AC_CLEARMIND_TAGS', array('SOURCE-ThriveAsOne-Cart'));
 
-
-//Which Sendy install to use for the email list?
-define('TAO_SENDY_LIST', '7ftc2QvpKbR6S8os0ZVLoQ');
-define('TAO_SENDY_LIST_REAL', 'DcuFxHJW55U22aLRb5sLLg');
-define('TAO_SENDY', 'https://email.thriveasone.ca/subscribe');
-define('TAO_SENDY_API','9EI3VMc5Q9zlXuD55Mxv');
-define('MAXMIND_LOCATION', '/var/www/thriveasone/wp-content/uploads/maxmind/GeoIP/GeoLite2-City.mmdb');
-define('TAO_GDPR_ZONES', array("AL","AD","AM","AT","BY","BE","BA","BG","CH","CY","CZ","DE","DK","EE","ES","FO","FI","FR","GB","GE","GI","GR","HU","HR","IE","IS","IT","LI","LT","LU","LV","MC","MK","MT","NO","NL","PL","PT","RO","RU","SE","SI","SK","SM","TR","UA","VA"));
 
 //JavaScript Player Lib
 define('TAO_PLAYER_LIB', '1.0.5');

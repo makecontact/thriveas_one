@@ -1,6 +1,8 @@
 <?php
 
-   
+    //Disable jQuery from the build (Although, as of 14 Jan 2024 theme.co was still bundling it)
+    add_filter('cs_use_jquery_everywhere', '__return_false');
+
     //Query vars for TAO
     function tao_query_vars( $qvars ) {
         $qvars[] = 'tao';
@@ -19,13 +21,13 @@
             }
         }
         //Queue up libraries
-        wp_enqueue_script( 'tao_vimeo', 'https://player.vimeo.com/api/player.js', 'jquery', '1.0.0', false);
+        wp_enqueue_script( 'tao_vimeo', 'https://player.vimeo.com/api/player.js', '', '1.0.0', false);
         if ($production) {
-            wp_enqueue_script( 'tao_player', plugin_dir_url(__FILE__) . 'js/tao_player.js', 'jquery', TAO_PLAYER_LIB, false);
+            wp_enqueue_script( 'tao_player', plugin_dir_url(__FILE__) . 'js/tao_player.js', '', TAO_PLAYER_LIB, false);
         } else {
             //Force it load with every request in debug mode
             $vid = wp_rand(0, 2147483647);
-            wp_enqueue_script( 'tao_player', plugin_dir_url(__FILE__) . 'js/tao_player.beta.js', 'jquery', TAO_PLAYER_LIB . $vid, false);
+            wp_enqueue_script( 'tao_player', plugin_dir_url(__FILE__) . 'js/tao_player.beta.js', '', TAO_PLAYER_LIB . $vid, false);
         }
         //Output essential script data
         $nonce = wp_create_nonce('tao_player');

@@ -3,7 +3,7 @@
         //Load existing profile data
         $user = wp_get_current_user();
         $meta = get_userdata($user->ID);
-        wp_enqueue_script( 'tao_account', plugin_dir_url(__FILE__) . '/js/account.js', 'jquery', '1.0.0', false);	
+        wp_enqueue_script( 'tao_account', plugin_dir_url(__FILE__) . '/js/account.js', '', '1.0.0', false);	
         if ($user != false) {
             $html = '<div id="tao_profile_editable" class="tao_profile">';    
             //First name
