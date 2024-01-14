@@ -1,6 +1,21 @@
 CHANGELOG
 =========
 
+1.11.1 (2023-12-01)
+-------------------
+
+* Resolve warnings when compiling the C extension.
+* Fix various type issues detected by PHPStan level. Pull request by
+  LauraTaylorUK. GitHub #160.
+
+1.11.0 (2021-10-18)
+-------------------
+
+* Replace runtime define of a constant to facilitate opcache preloading.
+  Reported by vedadkajtaz. GitHub #134.
+* Resolve minor issue found by the Clang static analyzer in the C
+  extension.
+
 1.10.1 (2021-04-14)
 -------------------
 
