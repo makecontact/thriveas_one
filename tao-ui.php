@@ -9,28 +9,6 @@
     add_filter( 'query_vars', 'tao_query_vars' );
 
 
-    //Embeds the slick slider object
-    function tao_slick($atts, $content = null) {
-        //Decode atts
-        $a = shortcode_atts( array(
-            'style' => ''
-        ), $atts );
-        //Queue up libraries
-        wp_enqueue_script( 'tao_default', plugin_dir_url(__FILE__) . 'js/tao_default.js', 'jquery', '1.0.0', false);
-        wp_enqueue_script( 'slick', plugin_dir_url(__FILE__) . 'slick/slick/slick.min.js', 'jquery', '1.8.1', false);
-        wp_enqueue_style( 'slick', plugin_dir_url(__FILE__) . 'slick/slick/slick.css', array(), '1.8.1' );
-        //Load the correct slider style
-        if ($a['style'] == '') {
-            wp_enqueue_style( 'tao-theme', plugin_dir_url(__FILE__) . 'css/tao_global.css', array(), '2' );
-        } else if ($a['style'] == 'events') {
-            wp_enqueue_style( 'tao-theme', plugin_dir_url(__FILE__) . 'css/tao_events.css', array(), '2' );
-        }
-        //Output div tag
-        return '<!-- Slick -->';
-    }
-    add_shortcode('tao_slick', 'tao_slick');
-
-
     //Embeds the libraries for the player
     function tao_player_embed($atts) {
         $production = true;

@@ -1,12 +1,12 @@
 <?php
 /**
  * Plugin Name:       Thrive As One 
- * Description:       Custom libraries and code for the Thrive as one website.
+ * Description:       Custom libraries and code for the Thrive as One website.
  * Version:           1.0.0
  * Author:            MJ Shelley
  * Author URI:        https://mjshelley.com/
  * Author Email:      matt@mjshelley.com
- * Plugin URI: 		  https://thriveasone.ca
+ * Plugin URI: 		  https://thriveas.one
  * Text Domain:       thriveasone
  */
 
