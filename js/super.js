@@ -1,4 +1,4 @@
-console.log('TAO Super 2.0.0 (No jQuery)');
+console.log('TAO Super 2.0.0');
 window.tao_parseQuery = function(qstr) {
     var query = {};
     var a = qstr.substr(1).split('&');
