@@ -54,7 +54,7 @@ define('REMOTE_DB_PASS','uBqh%Ob040pKW8jNC863');
 define('REMOTE_DB_USER','cms');
 define('REMOTE_DB_NAME','cms');
 
-define('TAO_FEEDBACK_EMAIL', 'support@thriveasone.ca');
+define('TAO_FEEDBACK_EMAIL', 'hello@thriveas.one');
 
 define('TAO_DEVELOPERS', array(2));
 
@@ -79,28 +79,6 @@ if (is_admin()) {
 		));		
 	}
 }
-
-//URLs and configuration
-function tao_qv($vars) {
-	$vars[] = "__sendy";
-	return $vars;
-}
-function tao_csr() {	
-	add_rewrite_rule('webhook/sendy/?([^/]*)', 'index.php?__sendy=$matches[1]', 'top');
-	if ( get_option( 'tao_url_rules' ) != '1.0.0' ) {
-		flush_rewrite_rules();
-		update_option( 'tao_url_rules', '1.0.0' );
-	}
-}
-function tao_request() {
-	global $wp, $wpdb;	
-	if ( isset($wp->query_vars['__sendy'])) {
-		tao_webhook_sendy($wp->query_vars['__sendy']);
-	}
-}
-add_action('init', 'tao_csr');
-add_filter('query_vars', 'tao_qv');
-add_action('parse_request','tao_request');
 
 //Error helper function
 function tao_error($error) {
