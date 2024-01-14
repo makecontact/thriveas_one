@@ -21,6 +21,23 @@ define('THRIVECART_API_MODE', 'live'); //live or test
 define('MEMBERDECK_CANCELLED_GROUP', 3); //inside tao_profile.php we manually add them cancelled
 define('MEMBERDECK_SUBSCRIBED_GROUP', 2); //inside tao_profile.php we use this to flag it as a new account
 
+//The master series product ID in the gcc_product table for MemberDeck 
+// --==-- Thrive Membership (Clearmind)
+define('MEMBERDECK_MASTER_PRODUCT_ID', 4);
+
+//ActiveCampaign integrations
+define('TAO_AC_THRIVE_ENDPOINT', 'thriveasone');
+define('TAO_AC_THRIVE_APIKEY', '33aed9aeb4cea34c0de94fddac9bf681e06ac6abf6c0f6d735540836630b42283d765c09');
+define('TAO_AC_ACCOUNT', '478238487');
+define('TAO_AC_EVENT_KEY', 'b66193628702880e580ee9d938ddf81b40a84fab');
+define('TAO_AC_EVENTS', array(''));
+
+//Clearmind ActiveCampaign API
+define('TAO_AC_CLEARMIND_ENDPOINT', 'clearmind91109');
+define('TAO_AC_CLEARMIND_APIKEY', '89243a99d0f314f5ee187b4b2d10cd57aa70e79d5e6ccf3d055135d4e5cd24489570e13f');
+define('TAO_AC_CLEARMIND_TAGS', array('SOURCE-ThriveAsOne-Cart'));
+
+
 //Which Sendy install to use for the email list?
 define('TAO_SENDY_LIST', '7ftc2QvpKbR6S8os0ZVLoQ');
 define('TAO_SENDY_LIST_REAL', 'DcuFxHJW55U22aLRb5sLLg');
@@ -49,6 +66,7 @@ require 'tao-header.php';
 require 'tao-profile.php';
 require 'tao-ui.php';
 require 'tao-programs.php';
+require 'tao-integrations.php';
 
 if (is_admin()) {
 	if( function_exists('acf_add_options_page') ) {

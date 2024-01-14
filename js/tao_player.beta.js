@@ -6,8 +6,6 @@ jQuery(document).ready(function() {
     window.new_video = false;
     window.last_point = false;
 
-console.log('beta player');
-
     function exIntID(id) {
         const regex = /\d+$/; // Regular expression to match an integer at the end of the string
         const match = id.match(regex); // Apply regex to the input id string

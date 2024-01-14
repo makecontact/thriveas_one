@@ -368,6 +368,8 @@
         $exclude_cats = isset($param['exclude']) ? $param['exclude'] : array();
         $include_cats = isset($param['categories']) ? $param['categories'] : array();
         $include_type = isset($param['type']) ? $param['type'] : array();
+        $override = isset($param['override']) ? $param['override'] : array();
+        $override_links = isset($param['override_links']) ? $param['override_links'] : array();
         if ($taodb == null) $taodb = tao_set_db();
         //Limit
         $limit = '';
@@ -390,13 +392,21 @@
             $filter = ' AND c.ID NOT IN (' . implode(',', $exclude_cats) . ') ';
         }
         //Run search
-        $sql = 'SELECT p.*, DATE_FORMAT(p.golive, "%b %Y") AS streaming, DATE_FORMAT(p.golive, "%M %Y") AS full_streaming, c.name AS category
-                FROM tao_program AS p
-                LEFT JOIN tao_program_category AS pc ON pc.program_ID = p.ID
-                LEFT JOIN tao_category AS c ON pc.category_ID = c.ID
-                WHERE p.status = 1 ' . $filter . '
-                ORDER BY p.published DESC, p.golive ASC ' . $limit;
-
+        if (empty($override)) {
+            $sql = 'SELECT p.*, DATE_FORMAT(p.golive, "%b %Y") AS streaming, DATE_FORMAT(p.golive, "%M %Y") AS full_streaming, c.name AS category
+                    FROM tao_program AS p
+                    LEFT JOIN tao_program_category AS pc ON pc.program_ID = p.ID
+                    LEFT JOIN tao_category AS c ON pc.category_ID = c.ID
+                    WHERE p.status = 1 ' . $filter . '
+                    ORDER BY p.published DESC, p.golive ASC ' . $limit;
+        } else {
+            $sql = 'SELECT p.*, DATE_FORMAT(p.golive, "%b %Y") AS streaming, DATE_FORMAT(p.golive, "%M %Y") AS full_streaming, c.name AS category
+            FROM tao_program AS p
+            LEFT JOIN tao_program_category AS pc ON pc.program_ID = p.ID
+            LEFT JOIN tao_category AS c ON pc.category_ID = c.ID
+            WHERE p.ID IN (' . implode(',', $override) . ') 
+            ORDER BY FIELD(p.ID,' . implode(',', $override) . ')';
+        }
         $programs = $taodb->get_results($sql, ARRAY_A);
         if (count($programs) != 0) {
             for ($i=0; $i < count($programs); $i++) {
@@ -442,6 +452,15 @@
                     default:
                         $programs[$i]['prog_type_name'] = 'Series';
                         break;
+                }
+                //Override link
+                $programs[$i]['override'] = '';
+                if (!empty($override_links)) {
+                    foreach ($override_links as $l) {
+                        if (isset($l[$programs[$i]['ID']])) {
+                            $programs[$i]['override'] = $l[$programs[$i]['ID']];
+                        }
+                    }
                 }
                 unset($programs[$i]['meta']);
                 unset($programs[$i]['viewer_id']);
