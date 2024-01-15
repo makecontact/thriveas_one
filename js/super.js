@@ -1,4 +1,4 @@
-console.log('TAO Super 2.0.3');
+console.log('TAO Super 2.0.5');
 window.tao_parseQuery = function(qstr) {
     var query = {};
     var a = qstr.substr(1).split('&');
@@ -70,16 +70,25 @@ window.tao_ajaxHandler = function(data, callback) {
 }
 //Modal helper functions
 window.sm_bg_close = true; 
+
 document.querySelectorAll('.x-modal-bg').forEach(function(element) {
-    element.addEventListener('click', function() {
-        return window.sm_bg_close;
+    element.addEventListener('click', function(event) {
+        if (window.sm_bg_close === false) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
     });
 });
+
 document.querySelectorAll('.x-off-canvas-bg').forEach(function(element) {
-    element.addEventListener('click', function() {
-        return window.sm_bg_close;
+    element.addEventListener('click', function(event) {
+        if (window.sm_bg_close === false) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
     });
 });
+
 window.sm_toggle = function(status, model_class, cb = '', bgclose = true) {
     setTimeout(function() {
         var element = document.querySelector('.' + model_class);
