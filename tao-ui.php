@@ -23,23 +23,12 @@
         //Queue up libraries
         wp_enqueue_script( 'tao_vimeo', 'https://player.vimeo.com/api/player.js', '', '1.0.0', false);
         if ($production) {
-            wp_enqueue_script( 'tao_player', plugin_dir_url(__FILE__) . 'js/tao_player.js', '', TAO_PLAYER_LIB, false);
+            wp_enqueue_script( 'tao_player', plugin_dir_url(__FILE__) . 'js/tao_player.js', array('toaglobal'), TAO_PLAYER_LIB, false);
         } else {
             //Force it load with every request in debug mode
             $vid = wp_rand(0, 2147483647);
-            wp_enqueue_script( 'tao_player', plugin_dir_url(__FILE__) . 'js/tao_player.beta.js', '', TAO_PLAYER_LIB . $vid, false);
+            wp_enqueue_script( 'tao_player', plugin_dir_url(__FILE__) . 'js/tao_player.beta.js', array('toaglobal'), TAO_PLAYER_LIB . $vid, false);
         }
-        //Output essential script data
-        $nonce = wp_create_nonce('tao_player');
-        //Add essential data to the script
-        wp_localize_script(
-            'tao_player', 
-            'tao_player',
-            array(
-                'url' => admin_url( 'admin-ajax.php' ),
-                'nonce' => $nonce
-            )
-        );
         //Output div tag
         return '<!-- TAO Player -->';
     }
@@ -847,10 +836,10 @@
     }
     add_action('memberdeck_onboarding','tao_watch_onboarding', 1, 10);
 
-    
+
     //Track watching
     function tao_watch() {
-        check_ajax_referer( 'tao_player', 'nonce' );
+        check_ajax_referer( 'tao_global', 'nonce' );
         global $taodb;
         if ($taodb == null) $taodb = tao_set_db();
         $user = wp_get_current_user();
@@ -928,7 +917,7 @@
 
     //Handle the feedback
     function tao_feedback() {
-        check_ajax_referer( 'tao_player', 'nonce' );
+        check_ajax_referer( 'tao_global', 'nonce' );
         global $taodb;
         $result = array(
             'error' => false,
@@ -984,11 +973,10 @@
     }
     add_action('wp_ajax_tao_feedback', 'tao_feedback');
 
-    //Create $RDB
+    //Connect to the cms database
     function tao_set_db() {
-        $taodb = new wpdb(REMOTE_DB_USER, REMOTE_DB_PASS, REMOTE_DB_NAME, 'localhost');
+        $taodb = new wpdb(REMOTE_DB_USER, REMOTE_DB_PASS, REMOTE_DB_NAME, REMOTE_DB_HOST);
         $taodb->set_prefix('wp_');
         return $taodb;
     }
-
 ?>

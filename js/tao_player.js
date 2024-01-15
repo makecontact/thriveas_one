@@ -293,11 +293,11 @@ document.addEventListener('DOMContentLoaded', function() {
         var dwt = document.querySelector('#video_viewer').getAttribute('data-watch');
         if (dwt == undefined || dwt == 1) {
             var data = {
-                url: tao_player.url,
+                url: toaglobal.u,
                 method: 'POST',
                 data: {
                     action: 'tao_watch',
-                    nonce: tao_player.nonce,
+                    nonce: toaglobal.n,
                     hex: document.querySelector('#video_viewer').getAttribute('data-hex'),
                     position: last_point,
                     completed: completed
@@ -667,11 +667,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.querySelector('.tao_submit_feedback').addEventListener('click', function() {
         var data = {
-            url: tao_player.url,
+            url: toaglobal.u,
             method: 'POST',
             data: {
                 action: 'tao_feedback',
-                nonce: tao_player.nonce,
+                nonce: toaglobal.n,
                 rating: tao_get_feedback_rating(),
                 permalink: document.querySelector('#tao_permalink').value,
                 message: document.querySelector('#tao_feedback_message').value
