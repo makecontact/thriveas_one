@@ -11,7 +11,6 @@
     add_filter( 'query_vars', 'tao_query_vars' );
 
 
-    //Embeds the libraries for the player
     function tao_player_embed($atts) {
         $production = true;
         if (WP_DEBUG == true) {
@@ -23,11 +22,11 @@
         //Queue up libraries
         wp_enqueue_script( 'tao_vimeo', 'https://player.vimeo.com/api/player.js', '', '1.0.0', false);
         if ($production) {
-            wp_enqueue_script( 'tao_player', plugin_dir_url(__FILE__) . 'js/tao_player.js', array('toaglobal'), TAO_PLAYER_LIB, false);
+            wp_enqueue_script( 'tao_player', plugin_dir_url(__FILE__) . 'js/tao_player.js', array('toaglobal', 'tao_vimeo'), TAO_PLAYER_LIB, false);
         } else {
             //Force it load with every request in debug mode
             $vid = wp_rand(0, 2147483647);
-            wp_enqueue_script( 'tao_player', plugin_dir_url(__FILE__) . 'js/tao_player.beta.js', array('toaglobal'), TAO_PLAYER_LIB . $vid, false);
+            wp_enqueue_script( 'tao_player', plugin_dir_url(__FILE__) . 'js/tao_player.beta.js', array('toaglobal', 'tao_vimeo'), TAO_PLAYER_LIB . $vid, false);
         }
         //Output div tag
         return '<!-- TAO Player -->';
