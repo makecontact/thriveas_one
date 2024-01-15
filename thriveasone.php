@@ -22,22 +22,53 @@ define('THRIVECART_API_MODE', 'live'); //live or test
 define('MEMBERDECK_CANCELLED_GROUP', 3); //inside tao_profile.php we manually add them cancelled
 define('MEMBERDECK_SUBSCRIBED_GROUP', 2); //inside tao_profile.php we use this to flag it as a new account
 
+
+/*
+
+
+Commented out ActiveCampaign integrations because we will be working on this
+later when we scope out the functions of the new site.
+- Subscribing when someone new joins.
+- Tagging which videos they bought
+- Watch positions for each video
+- NO Clearmind integration anymore
+
+
 //The master series product ID in the gcc_product table for MemberDeck 
-// --==-- Thrive Membership (Clearmind)
-define('MEMBERDECK_MASTER_PRODUCT_ID', 4);
+define('MEMBERDECK_MASTER_PRODUCT_IDS', array(5, 6));
+define('MEMBERDECK_PID_MOVIE', 6);
+define('MEMBERDECK_PID_MASTERSERIES', 5);
 
 //ActiveCampaign integrations
 define('TAO_AC_THRIVE_ENDPOINT', 'thriveasone');
 define('TAO_AC_THRIVE_APIKEY', '33aed9aeb4cea34c0de94fddac9bf681e06ac6abf6c0f6d735540836630b42283d765c09');
 define('TAO_AC_ACCOUNT', '478238487');
 define('TAO_AC_EVENT_KEY', 'b66193628702880e580ee9d938ddf81b40a84fab');
-define('TAO_AC_EVENTS', array(''));
+define('TAO_AC_EVENTS', array('Watched Real Movie'));
+define('TAO_AC_THRIVE_SUB_TAGS', array('RealMovie','SOURCE-RealMovie-Sub'));
+define('TAO_AC_THRIVE_SUB_TEMPLATE', 'SOURCE-RealMovie-Sub-');
 
-//Clearmind ActiveCampaign API
-define('TAO_AC_CLEARMIND_ENDPOINT', 'clearmind91109');
-define('TAO_AC_CLEARMIND_APIKEY', '89243a99d0f314f5ee187b4b2d10cd57aa70e79d5e6ccf3d055135d4e5cd24489570e13f');
-define('TAO_AC_CLEARMIND_TAGS', array('SOURCE-ThriveAsOne-Cart'));
+//Feedback locations ([tao_subscribe list=""]) mapped to ActiveCampaign fields
+define('TAO_AC_THRIVE_FEEDBACK_MAP', array(
+	'4' => 'MOVIE_REVIEW_VANCOUVER',
+	'5' => 'MOVIE_REVIEW_UK',
+	'6' => 'MOVIE_REVIEW'
+));
 
+//How to handle events and tags for ActiveCampaign while watching the movie
+define('TAO_AC_THRIVE_MOVIE_TRACKING', array(
+	'0' => array('event','SOURCE-RealMovie-Watched-0'),
+	'10' => array('event'),
+	'20' => array('event'),
+	'30' => array('event'),
+	'40' => array('event'),
+	'50' => array('event','SOURCE-RealMovie-Watched-50'),
+	'60' => array('event'),
+	'70' => array('event'),
+	'80' => array('event'),
+	'90' => array('event','SOURCE-RealMovie-Watched-End')
+));
+*/
 
 //JavaScript Player Lib
 define('TAO_PLAYER_LIB', '1.0.5');
@@ -59,7 +90,7 @@ require 'tao-header.php';
 require 'tao-profile.php';
 require 'tao-ui.php';
 require 'tao-programs.php';
-require 'tao-integrations.php';
+//require 'tao-integrations.php';
 
 if (is_admin()) {
 	if( function_exists('acf_add_options_page') ) {
