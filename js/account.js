@@ -1,4 +1,4 @@
-jQuery(document).ready(function() {
+document.addEventListener('DOMContentLoaded', function() {
     console.log('TAO Account 1.0.0');
 
     document.getElementById('tao_edit_profile').addEventListener('click', function(){
@@ -108,17 +108,17 @@ jQuery(document).ready(function() {
         //First name
         html += '<div id="tao_set_firstname">';
         html += '<label for="tao_profile_firstname">First Name<br>';
-        html += '<span class="tao_text_field">' + jQuery('#tao_profile_firstname').val() + '</span>';
+        html += '<span class="tao_text_field">' + document.getElementById('tao_profile_firstname').value + '</span>';
         html += '</label></div>';               
         //Last name
         html += '<div id="tao_set_lastname">';
         html += '<label for="tao_profile_lastname">Last Name<br>';
-        html += '<span class="tao_text_field">' + jQuery('#tao_profile_lastname').val() + '</span>';
+        html += '<span class="tao_text_field">' + document.getElementById('tao_profile_lastname').value + '</span>';
         html += '</label></div>';           
         //Email
         html += '<div id="tao_set_email">';
         html += '<label for="tao_profile_email">Email<br>';
-        html += '<span class="tao_text_field">' + jQuery('#tao_profile_email').val() + '</span>';
+        html += '<span class="tao_text_field">' + document.getElementById('tao_profile_email').value + '</span>';
         html += '</label></div>';
         //Password 
         html += '<div id="tao_set_password">';
