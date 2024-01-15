@@ -34,34 +34,31 @@ window.tao_deleteCookie = function(cname, domain = 'thriveas.one') {
 }
 window.cqs_progress = false;
 window.tao_ajaxHandler = function(data, callback) {
-    let cqs_progress = true;
+    cqs_progress = true;
     data.data.n = toaglobal.n;
-    fetch(toaglobal.u, {
+    var url = new URL(toaglobal.u);
+    Object.keys(data.data).forEach(key => url.searchParams.append(key, data.data[key]));
+
+    fetch(url, {
         method: 'POST',
-        body: JSON.stringify(data.data),
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
         },
+        body: new URLSearchParams(data.data).toString(),
         timeout: 60000
     })
+    .then(response => response.json())
     .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        return response.json();
-    })
-    .then(r => {
-        if (r.error === true) {
-            console.log(JSON.stringify(r));
+        if (response.error == true) {
+            console.log(response);
         } else {
-            data.res = r;
+            data.res = response;
             callback(data);
         }
+        cqs_progress = false;
     })
     .catch(error => {
-        console.error('There has been a problem with your fetch operation:', error);
-    })
-    .finally(() => {
+        console.log('Error:', error);
         cqs_progress = false;
     });
 }
