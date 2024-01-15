@@ -87,13 +87,12 @@ function tao_get_client_ip() {
     add_action('wp_head', 'toa_tag_manager_header', 10, 0);
 
     //Google tag manager no script tag
-	function toa_tag_manager_no_script() {
-		$default = get_option('intercpt_default', array());
-		echo "<!-- Google Tag Manager (noscript) -->
-<noscript><iframe src=\"https://www.googletagmanager.com/ns.html?id=" . TOA_GTM_TAG . "\"
-height=\"0\" width=\"0\" style=\"display:none;visibility:hidden\"></iframe></noscript>
-<!-- End Google Tag Manager (noscript) -->";		
-	}
+    function toa_tag_manager_no_script() {
+        echo "<!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src=\"https://www.googletagmanager.com/ns.html?id=" . TOA_GTM_TAG . "\"
+    height=\"0\" width=\"0\" style=\"display:none;visibility:hidden\"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->";      
+    }
     add_action( 'x_before_site_begin', 'toa_tag_manager_no_script', 1, 0 );
 
 
