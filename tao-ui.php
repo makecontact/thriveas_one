@@ -847,56 +847,7 @@
     }
     add_action('memberdeck_onboarding','tao_watch_onboarding', 1, 10);
 
-
-    //Track Counsellor Clicks
-    function tao_track_click() {
-        check_ajax_referer( 'tao_player', 'nonce' );
-        global $taodb;
-        if ($taodb == null) $taodb = tao_set_db();
-        $user_id = get_current_user_id();
-        $email = '';
-        $name = 'Anon';
-        if ($user_id != 0) {
-            $user_meta = get_userdata($user_id);
-            $email = $user_meta->user_email;
-            $name = $user_meta->display_name;
-        }
-        $result = array(
-            'error' => true
-        );
-        $ID = isset($_REQUEST['ID']) ? intval($_REQUEST['ID']) : false;
-        $URL = isset($_REQUEST['URL']) ? sanitize_text_field($_REQUEST['URL']) : false;
-        if ($ID != false && $URL != false) {
-            $valid_expert = $taodb->get_row('SELECT ID FROM tao_counsellor WHERE ID = ' . $ID);
-            if ($valid_expert != null) {
-                $meta = array(
-                    'UserID' => $user_id,
-                    'UserEmail' => $email, 
-                    'Name' => $name,
-                    'URL' => $URL,
-                    'IP' => tao_get_client_ip(),
-                    'UA' => $_SERVER['HTTP_USER_AGENT']
-                );
-                $taodb->insert(
-                    'tao_counsellor_click',
-                    array(
-                        'counsellor_ID' => $valid_expert->ID,
-                        'clicked' => current_time('mysql'),
-                        'meta' => json_encode($meta)
-                    ),
-                    array(
-                        '%d', '%s', '%s'
-                    )
-                );
-            }
-        }
-        echo json_encode($result);
-        exit();
-    }
-    add_action('wp_ajax_tao_click', 'tao_track_click');
-    add_action('wp_ajax_priv_tao_click', 'tao_track_click');
-
-
+    
     //Track watching
     function tao_watch() {
         check_ajax_referer( 'tao_player', 'nonce' );

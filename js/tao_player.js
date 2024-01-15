@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', function() {
-    
     console.log('Player 1.0.6');
     
     window.vimeoPlayer = false;
@@ -293,16 +292,24 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         var dwt = document.querySelector('#video_viewer').getAttribute('data-watch');
         if (dwt == undefined || dwt == 1) {
-            var xhr = new XMLHttpRequest();
-            xhr.open("POST", tao_player.url, true);
-            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                    // Handle success response
+            var data = {
+                url: tao_player.url,
+                method: 'POST',
+                data: {
+                    action: 'tao_watch',
+                    nonce: tao_player.nonce,
+                    hex: document.querySelector('#video_viewer').getAttribute('data-hex'),
+                    position: last_point,
+                    completed: completed
                 }
             };
-            var data = 'action=tao_watch&nonce=' + tao_player.nonce + '&hex=' + document.querySelector('#video_viewer').getAttribute('data-hex') + '&position=' + last_point + '&completed=' + completed;
-            xhr.send(data);
+            window.tao_ajaxHandler(data, function(res) {
+                if (res.error == false) {
+                    // Handle success response
+                } else {
+                    console.log(res);
+                }
+            });
         }
     }
 
@@ -657,61 +664,29 @@ document.addEventListener('DOMContentLoaded', function() {
     submitDoneButton.addEventListener('click', function() {
         sm_toggle(false, 'tao_feedback_modal');
     });
+
     document.querySelector('.tao_submit_feedback').addEventListener('click', function() {
-        var xhr = new XMLHttpRequest();
-        xhr.open('POST', tao_player.url);
-        xhr.timeout = 60000;
-        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === XMLHttpRequest.DONE) {
-                if (xhr.status === 200) {
-                    // Success
-                }
-                // Complete
+        var data = {
+            url: tao_player.url,
+            method: 'POST',
+            data: {
+                action: 'tao_feedback',
+                nonce: tao_player.nonce,
+                rating: tao_get_feedback_rating(),
+                permalink: document.querySelector('#tao_permalink').value,
+                message: document.querySelector('#tao_feedback_message').value
+            }
+        };
+        window.tao_ajaxHandler(data, function(res) {
+            if (res.error == false) {
+                // Success
                 document.querySelector('#tao_feedback_ask').style.display = 'none';
                 document.querySelector('#tao_feedback_confirm').style.display = 'block';
                 var permalink = document.querySelector('#tao_permalink').value;
                 // Set cookie to prevent reopening
                 tao_setCookie('tao-feedback-' + permalink, 1, 365);
-            }
-        };
-        var data = new URLSearchParams();
-        data.append('action', 'tao_feedback');
-        data.append('nonce', tao_player.nonce);
-        data.append('rating', tao_get_feedback_rating());
-        data.append('permalink', document.querySelector('#tao_permalink').value);
-        data.append('message', document.querySelector('#tao_feedback_message').value);
-        xhr.send(data);
-    });
-
-    window.outbound = false;
-    document.querySelectorAll('.tao_clicked').forEach(function(btn) {
-        btn.addEventListener('click', function(event) {
-            event.preventDefault();
-            if (!outbound) {
-                outbound = true;
-                btn.style.cursor = 'wait';
-                btn.style.opacity = '0.5';
-                var xhr = new XMLHttpRequest();
-                xhr.open('POST', tao_player.url);
-                xhr.timeout = 60000;
-                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-                xhr.onreadystatechange = function() {
-                    if (xhr.readyState === XMLHttpRequest.DONE) {
-                        if (xhr.status === 200) {
-                            // Success
-                        }
-                        btn.style.cursor = 'pointer';
-                        btn.style.opacity = '1';
-                        window.location.href = btn.href;
-                    }
-                };
-                var data = new URLSearchParams();
-                data.append('action', 'tao_click');
-                data.append('nonce', tao_player.nonce);
-                data.append('ID', btn.dataset.cid);
-                data.append('URL', btn.href);
-                xhr.send(data);
+            } else {
+                console.log(res);
             }
         });
     });
