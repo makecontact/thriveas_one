@@ -1,4 +1,4 @@
-console.log('TAO Super 2.0.0');
+console.log('TAO Super 2.0.1');
 window.tao_parseQuery = function(qstr) {
     var query = {};
     var a = qstr.substr(1).split('&');
@@ -8,7 +8,7 @@ window.tao_parseQuery = function(qstr) {
     }
     return query;
 }
-window.tao_setCookie = function(cname, cvalue, exdays, domain) {
+window.tao_setCookie = function(cname, cvalue, exdays, domain = 'thriveas.one') {
     if (exdays != 0) {
         var d = new Date();
         d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
@@ -28,6 +28,9 @@ window.tao_getCookie = function(cname) {
         if (c.indexOf(name) == 0) return c.substring(name.length, c.length);
     }
     return "";
+}
+window.tao_deleteCookie = function(cname, domain = 'thriveas.one') {
+    document.cookie = cname + '=; domain=' + domain + '; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
 }
 window.cqs_progress = false;
 window.tao_ajaxHandler = function(data, callback) {
