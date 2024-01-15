@@ -49,7 +49,13 @@
         wp_enqueue_script( 'toaglobal', plugin_dir_url(__FILE__) . 'js/super.js', array(), '4', true);
         $nonce = wp_create_nonce('tao_global');
         $ajax = admin_url('admin-ajax.php');
-        wp_add_inline_script( 'toaglobal', 'window.toaglobal={n:"' . $nonce . '",u:"' . $ajax . '"}' );      
+        
+        // Localize the script with new data
+        $script_data_array = array(
+            'n' => $nonce,
+            'u' => $ajax
+        );
+        wp_localize_script('toaglobal', 'toaglobal', $script_data_array);
     }
     add_action('wp_enqueue_scripts', 'toa_enqueue_scripts');
 

@@ -22,7 +22,6 @@ define('THRIVECART_API_MODE', 'live'); //live or test
 define('MEMBERDECK_CANCELLED_GROUP', 3); //inside tao_profile.php we manually add them cancelled
 define('MEMBERDECK_SUBSCRIBED_GROUP', 2); //inside tao_profile.php we use this to flag it as a new account
 
-
 /*
 
 
@@ -71,7 +70,7 @@ define('TAO_AC_THRIVE_MOVIE_TRACKING', array(
 */
 
 //JavaScript Player Lib
-define('TAO_PLAYER_LIB', '1.0.5');
+define('TAO_PLAYER_LIB', '1.0.6');
 
 //CMS
 define('REMOTE_DB_PASS','uBqh%Ob040pKW8jNC863');
@@ -79,8 +78,6 @@ define('REMOTE_DB_USER','cms');
 define('REMOTE_DB_NAME','cms');
 
 define('TAO_FEEDBACK_EMAIL', 'hello@thriveas.one');
-
-define('TAO_DEVELOPERS', array(2));
 
 //Defaults
 define('TAO_DEFAULT_EXPERT', 'Thrive Community');
@@ -105,6 +102,8 @@ if (is_admin()) {
 }
 
 //Error helper function
+define('TAO_DEVELOPERS', array(1));
+
 function tao_error($error) {
     if (WP_DEBUG == true) {
         $user_id = get_current_user_id();
