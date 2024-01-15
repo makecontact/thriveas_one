@@ -2,25 +2,30 @@
 
     use GeoIp2\Database\Reader;
 
-   //Location service for cookie consent
-   function toa_location() {
- 		//Grab the country code for this user
-         $result = array('countryCode' => '', 'countryName' => '');
-         try {
+    //Location service for cookie consent
+    function toa_location() {
+        //Grab the country code for this user
+        $result = array('countryCode' => '', 'countryName' => '');
+        try {
             $upload_dir = wp_upload_dir();
             $geo_ip_reader = new Reader($upload_dir['basedir'] . '/maxmind/GeoIP/GeoLite2-City.mmdb');
             $record = $geo_ip_reader->city(tao_get_client_ip());
-            $result['countryCode'] = $record->country->isoCode;
             $result['countryName'] = $record->country->name;
-         } catch (Exception $e) {
-             $result['countryCode'] = '';
-             $result['countryName'] = '';
-         }
-         echo json_encode($result);
-         exit();	       
-   }
-   add_action('wp_ajax_nopriv_tao_country_code', 'toa_location');
-   add_action('wp_ajax_tao_country_code', 'toa_location');
+            if ($record->country->isoCode === 'US' && isset($record->mostSpecificSubdivision->isoCode) && $record->mostSpecificSubdivision->isoCode === 'CA') {
+                //Edge case for USA, only California is required to show the cookie consent
+                $result['countryCode'] = 'US-CA';
+            } else {
+                $result['countryCode'] = $record->country->isoCode;
+            }
+        } catch (Exception $e) {
+            $result['countryCode'] = '';
+            $result['countryName'] = '';
+        }
+        echo json_encode($result);
+        exit();           
+    }
+    add_action('wp_ajax_nopriv_tao_country_code', 'toa_location');
+    add_action('wp_ajax_tao_country_code', 'toa_location');
 
 
    //Get the client's IP address

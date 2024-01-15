@@ -170,7 +170,7 @@ function tao_gtag_status(status) {
 function cookie_law(law) {
     //Turn cookie features on/off
     var apply = false;
-    var enable = ["CA","AT","BE","BG","HR","CZ","CY","DK","EE","FI","FR","DE","EL","HU","IE","IT","LV","LT","LU","MT","NL","PL","PT","SK","ES","SE","GB","UK","GR","EU"]
+    var enable = ["CA","AT","BE","BG","HR","CZ","CY","DK","EE","FI","FR","DE","EL","HU","IE","IT","LV","LT","LU","MT","NL","PL","PT","SK","ES","SE","GB","UK","GR","EU", "US-CA"]
     if (enable.includes(law)) {
         apply = true;
         document.querySelectorAll('.cookie_law_btn').forEach(function(element) {
