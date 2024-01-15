@@ -51,9 +51,13 @@
         $ajax = admin_url('admin-ajax.php');
         
         // Localize the script with new data
+        $home_url = home_url();
+        $parsed_url = parse_url($home_url);
+        $domain = $parsed_url['host'];
         $script_data_array = array(
             'n' => $nonce,
-            'u' => $ajax
+            'u' => $ajax,
+            'd' => $domain,
         );
         wp_localize_script('toaglobal', 'toaglobal', $script_data_array);
     }

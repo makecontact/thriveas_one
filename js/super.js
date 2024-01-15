@@ -1,4 +1,4 @@
-console.log('TAO Super 2.0.1');
+console.log('TAO Super 2.0.3');
 window.tao_parseQuery = function(qstr) {
     var query = {};
     var a = qstr.substr(1).split('&');
@@ -8,7 +8,10 @@ window.tao_parseQuery = function(qstr) {
     }
     return query;
 }
-window.tao_setCookie = function(cname, cvalue, exdays, domain = 'thriveas.one') {
+window.tao_setCookie = function(cname, cvalue, exdays, domain = '') {
+    if (domain == '') {
+        domain = toaglobal.d;
+    }
     if (exdays != 0) {
         var d = new Date();
         d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
@@ -29,7 +32,10 @@ window.tao_getCookie = function(cname) {
     }
     return "";
 }
-window.tao_deleteCookie = function(cname, domain = 'thriveas.one') {
+window.tao_deleteCookie = function(cname, domain = '') {
+    if (domain == '') {
+        domain = toaglobal.d;
+    }
     document.cookie = cname + '=; domain=' + domain + '; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
 }
 window.cqs_progress = false;
@@ -103,7 +109,7 @@ document.querySelectorAll('.cookie_law_btn').forEach(function(element) {
 document.querySelectorAll('.tao_cookie_btn').forEach(function(element) {
     element.addEventListener('click', function() {
         var c = this.getAttribute('data-policy');
-        tao_setCookie('tao_gdpr', c, 365, 'thriveas.one');
+        tao_setCookie('tao_gdpr', c, 365, toaglobal.d);
         tao_gtag_status(c);
         sm_toggle(false, 'tao_cookie_panel');
     });
@@ -120,12 +126,12 @@ function init_cookie() {
                 }
             }, function(data){
                 law = data.res.countryCode;
-                tao_setCookie('tao_laws', law, 30, 'thriveas.one');
+                tao_setCookie('tao_laws', law, 30, toaglobal.d);
                 if (cookie_law(law)) {
                     init_banner();
                 } else {
-                    tao_setCookie('tao_auto', 'true', 365, 'thriveas.one');
-                    tao_setCookie('tao_gdpr', 'allow', 365, 'thriveas.one');
+                    tao_setCookie('tao_auto', 'true', 365, toaglobal.d);
+                    tao_setCookie('tao_gdpr', 'allow', 365, toaglobal.d);
                     tao_gtag_status('allow');
                 }
             });
@@ -222,7 +228,7 @@ function set_affiliate(affilate) {
         e: e
     };
     cd = btoa(JSON.stringify(cd)); 
-    tao_setCookie('tao_aff', cd, 30, 'thriveas.one');     
+    tao_setCookie('tao_aff', cd, 30, toaglobal.d);     
 }
 check_affiliate();
 document.querySelectorAll('.tao_aff').forEach(function(element) {
