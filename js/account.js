@@ -1,11 +1,11 @@
 jQuery(document).ready(function() {
     console.log('TAO Account 1.0.0');
 
-    jQuery('#tao_edit_profile').on('click', function(){
+    document.getElementById('tao_edit_profile').addEventListener('click', function(){
         tao_render_profile();
     });
 
-    jQuery('#tao_membership').each(function(){
+    Array.from(document.querySelectorAll('#tao_membership')).forEach(function(){
         //tao_request_status();
     });
 
@@ -56,9 +56,9 @@ jQuery(document).ready(function() {
         //Save Button
         html += '<a id="profile_save" class="tao_btn">Save Profile</a>';
         //Set view
-        jQuery('#tao_profile_editable').html(html);
+        document.getElementById('tao_profile_editable').innerHTML = html;
         //Set hook for save button
-        jQuery('#profile_save').on('click', function(){
+        document.getElementById('profile_save').addEventListener('click', function(){
             tao_save_profile();
         });
         //Weak password check
@@ -73,29 +73,32 @@ jQuery(document).ready(function() {
         var p = document.getElementById('tao_pwd_new');
         var timeout;
         var password = document.getElementById('PassEntry');
-        jQuery('#tao_pwd_new').after('<div class="tao-badge-messsage"></div>');
+        var badgeMessage = document.createElement('div');
+        badgeMessage.className = 'tao-badge-messsage';
+        p.parentNode.insertBefore(badgeMessage, p.nextSibling);
         p.addEventListener("input", () => {
             clearTimeout(timeout);
             timeout = setTimeout(() => tao_strength(p.value), 100);
             if(p.value.length !== 0){
                 //Show badge
-                jQuery('.tao-badge-messsage').show();
+                badgeMessage.style.display = 'block';
             } else{
                 //Hide badge
-                jQuery('.tao-badge-messsage').hide();
+                badgeMessage.style.display = 'none';
             }
         });
     }
     window.tao_strength = function(p){
+        var badgeMessage = document.querySelector('.tao-badge-messsage');
         if(tao_strong_pass.test(p)) {
             //Pass
-            jQuery('.tao-badge-messsage').html('<span style="color: #6bc0b2; font-weight: 700">Great password</span>');
+            badgeMessage.innerHTML = '<span style="color: #6bc0b2; font-weight: 700">Great password</span>';
         } else if(tao_medium_pass.test(p)){
             //OK
-            jQuery('.tao-badge-messsage').html('<span style="color: #397eb3">Medium, add number &amp; special character.</span>');
+            badgeMessage.innerHTML = '<span style="color: #397eb3">Medium, add number &amp; special character.</span>';
         } else{
             //Fail
-            jQuery('.tao-badge-messsage').html('<span style="color: #f06d6d">Weak password, it\'s too easy to guess.</span>');
+            badgeMessage.innerHTML = '<span style="color: #f06d6d">Weak password, it\'s too easy to guess.</span>';
         }
     }
 
@@ -125,9 +128,9 @@ jQuery(document).ready(function() {
         //Edit link
         html += '<div><a id="tao_edit_profile" class="tao_main_link">Edit Profile</a></div>';
         html += '</div>';
-        jQuery('#tao_profile_editable').html(html);
+        document.getElementById('tao_profile_editable').innerHTML = html;
         //Hook
-        jQuery('#tao_edit_profile').on('click', function(){
+        document.getElementById('tao_edit_profile').addEventListener('click', function(){
             tao_render_profile();
         });
     }
@@ -135,232 +138,246 @@ jQuery(document).ready(function() {
     //Save the profile
     function tao_save_profile() {
         //Reset errors
-        jQuery('.tao-input-error').removeClass('tao-input-error');
-        jQuery('.tao-input-messsage').remove();
-        jQuery('.tao-badge-messsage').remove();
-        var firstname = jQuery('#tao_profile_firstname');
-        var lastname = jQuery('#tao_profile_lastname');
-        var email = jQuery('#tao_profile_email');
+        Array.from(document.querySelectorAll('.tao-input-error')).forEach(function(element){
+            element.classList.remove('tao-input-error');
+        });
+        Array.from(document.querySelectorAll('.tao-input-messsage')).forEach(function(element){
+            element.parentNode.removeChild(element);
+        });
+        Array.from(document.querySelectorAll('.tao-badge-messsage')).forEach(function(element){
+            element.parentNode.removeChild(element);
+        });
+        var firstname = document.getElementById('tao_profile_firstname');
+        var lastname = document.getElementById('tao_profile_lastname');
+        var email = document.getElementById('tao_profile_email');
         //Validate the form
         var passed = true;
-        if (firstname.val() == '') {
-            passed = false;
-            firstname.addClass('tao-input-error');
-            firstname.after('<div class="tao-input-messsage">Please enter in your first name.</div>');
-        }
-        if (lastname.val() == '') {
-            passed = false;
-            lastname.addClass('tao-input-error');
-            lastname.after('<div class="tao-input-messsage">Please enter in your last name.</div>');
-        }
-        if (email.val() == '') {
-            passed = false;
-            email.addClass('tao-input-error');
-            email.after('<div class="tao-input-messsage">Please enter in your new email.</div>');
-        } else {
+        validateInput(firstname, 'Please enter in your first name.');
+        validateInput(lastname, 'Please enter in your last name.');
+        validateInput(email, 'Please enter in your new email.');
+        if (email.value != '') {
             //Format of the email address
             var re = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
-            if (!re.test(email.val())) {
-                passed = false;
-                email.addClass('tao-input-error');
-                email.after('<div class="tao-input-messsage">Please check your email address.</div>');                
+            if (!re.test(email.value)) {
+                setError(email, 'Please check your email address.');
             }
         }
         //Password form validation
-        var p_current = jQuery('#tao_pwd_current');
-        var p_new = jQuery('#tao_pwd_new');
-        var p_confirm = jQuery('#tao_pwd_confirm');
+        var p_current = document.getElementById('tao_pwd_current');
+        var p_new = document.getElementById('tao_pwd_new');
+        var p_confirm = document.getElementById('tao_pwd_confirm');
         var pass = '';
         //Check passwords
-        if (p_new.val() != '') {  
-            if (p_current.length != 0) {
-                if (p_current.val() == '') {
-                    passed = false;
-                    p_current.addClass('tao-input-error');
-                    p_current.after('<div class="tao-input-messsage">What\'s your current password?.</div>');
-                } 
-                pass = p_current.val();           
-            }
-            if (p_new.val() == '') {
-                passed = false;
-                p_new.addClass('tao-input-error');
-                p_new.after('<div class="tao-input-messsage">Please enter in a new password.</div>');
-            }
-            if (passed == true && p_confirm.val() == '') {
-                passed = false;
-                p_confirm.addClass('tao-input-error');
-                p_confirm.after('<div class="tao-input-messsage">Please confirm your new password.</div>');
-            }
-            //Conditional validation
+        if (p_new.value != '') {  
+            validateInput(p_current, 'What\'s your current password?.');
+            pass = p_current.value;           
+            validateInput(p_new, 'Please enter in a new password.');
             if (passed == true) {
-                if (p_confirm.val() != p_new.val()) {
-                    passed = false;
-                    p_confirm.addClass('tao-input-error');
-                    p_confirm.after('<div class="tao-input-messsage">Your new password doesn\'t match.</div>');             
-                }
-                //Basic password requirements
-                if (!tao_medium_pass.test(p_new.val())) {
-                    passed = false;
-                    p_new.addClass('tao-input-error');
-                    p_new.after('<div class="tao-input-messsage">Too easy to guess, use a harder password.</div>');               
+                validateInput(p_confirm, 'Please confirm your new password.');
+                //Conditional validation
+                if (passed == true) {
+                    if (p_confirm.value != p_new.value) {
+                        setError(p_confirm, 'Your new password doesn\'t match.');            
+                    }
+                    //Basic password requirements
+                    if (!tao_medium_pass.test(p_new.value)) {
+                        setError(p_new, 'Too easy to guess, use a harder password.');              
+                    }
                 }
             }
         }
         if (passed) {
-            jQuery.ajax(tao_account.url, {
-                timeout: 60000,
-                data: {
-                    'action': 'tao_edit_profile',
-                    'nonce': tao_account.nonce,
-                    'firstname': firstname.val(),
-                    'lastname': lastname.val(),
-                    'email': email.val(),
-                    'current': pass,
-                    'new': p_new.val()
+            var data = {
+                'action': 'tao_edit_profile',
+                'nonce': tao_account.nonce,
+                'firstname': firstname.value,
+                'lastname': lastname.value,
+                'email': email.value,
+                'current': pass,
+                'new': p_new.value
+            };
+            fetch(tao_account.url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
                 },
-                type: "POST",
-                error: function() {						
-                },
-                success: function(response) {
-                    //Process response
-                    var res = JSON.parse(response);
-                    if (res.error == false) {
-                        switch (res.message) {
-                            case 'OK':
-                                //Redraw only
-                                tao_redraw();
-                                break;
-                            case 'UPDATED':
-                                //Update the main data
-                                tao_account.firstname = firstname.val();
-                                tao_account.lastname = lastname.val();
-                                tao_account.email = email.val();
-                                //Show the modal
-                                setTimeout(function(){
-                                    jQuery('#tao_confirm-anchor-toggle')[0].click();
-                                }, 100);
-                                //Close the modal
-                                setTimeout(function(){
-                                    var id = jQuery('.tao_confirm').attr('data-x-toggleable');
-                                    var isModalOpen = window.xToggleGetState( id );
-                                    if (isModalOpen) {
-                                        window.xToggleUpdate( id, false );
-                                    }
-                                }, 4000);                               
-                                //Redraw
-                                tao_redraw();
-                                break;   
-                        }
-                    } else {
-                        switch (res.message) {
-                            case 'PASSWORD':
-                                //Set error message
-                                p_current.addClass('tao-input-error');
-                                p_current.after('<div class="tao-input-messsage">Incorrect password.</div>');
-                                break;    
-                        }
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(res => {
+                if (res.error == false) {
+                    switch (res.message) {
+                        case 'OK':
+                            //Redraw only
+                            tao_redraw();
+                            break;
+                        case 'UPDATED':
+                            //Update the main data
+                            tao_account.firstname = firstname.value;
+                            tao_account.lastname = lastname.value;
+                            tao_account.email = email.value;
+                            //Show the modal
+                            setTimeout(function(){
+                                document.getElementById('tao_confirm-anchor-toggle').click();
+                            }, 100);
+                            //Close the modal
+                            setTimeout(function(){
+                                var id = document.querySelector('.tao_confirm').getAttribute('data-x-toggleable');
+                                var isModalOpen = window.xToggleGetState(id);
+                                if (isModalOpen) {
+                                    window.xToggleUpdate(id, false);
+                                }
+                            }, 4000);                               
+                            //Redraw
+                            tao_redraw();
+                            break;   
+                    }
+                } else {
+                    switch (res.message) {
+                        case 'PASSWORD':
+                            //Set error message
+                            setError(p_current, 'Incorrect password.');
+                            break;    
                     }
                 }
-            });            
+            })
+            .catch(error => {
+                console.error('There has been a problem with your fetch operation:', error);
+            });           
         }
     }
 
-    jQuery('#tao_cancel').on('click', function(){
-        if (jQuery(this).data('expire') != '') {
-            jQuery('.expiration_notice').show();
-            jQuery('#tao_expire_contract').html(jQuery(this).data('expire'));
+    function validateInput(inputElement, errorMessage) {
+        if (inputElement.value == '') {
+            passed = false;
+            inputElement.classList.add('tao-input-error');
+            var message = document.createElement('div');
+            message.className = 'tao-input-messsage';
+            message.textContent = errorMessage;
+            inputElement.parentNode.insertBefore(message, inputElement.nextSibling);
+        }
+    }
+
+    function setError(inputElement, errorMessage) {
+        inputElement.classList.add('tao-input-error');
+        var message = document.createElement('div');
+        message.className = 'tao-input-messsage';
+        message.textContent = errorMessage;
+        inputElement.parentNode.insertBefore(message, inputElement.nextSibling);
+    }
+
+    document.getElementById('tao_cancel').addEventListener('click', function(){
+        if (this.getAttribute('data-expire') != '') {
+            document.querySelector('.expiration_notice').style.display = 'block';
+            document.getElementById('tao_expire_contract').innerHTML = this.getAttribute('data-expire');
         } else {
-            jQuery('.expiration_notice').show();
+            document.querySelector('.expiration_notice').style.display = 'block';
         }
         setTimeout(function(){
-            jQuery('#tao_cancel_window-anchor-toggle')[0].click();
+            document.getElementById('tao_cancel_window-anchor-toggle').click();
         }, 100);
     });
-    jQuery('.tao_cancel_modal').on('click', function(){
-        var id = jQuery('.tao_cmod').attr('data-x-toggleable');
-        var isModalOpen = window.xToggleGetState( id );
+
+    document.querySelector('.tao_cancel_modal').addEventListener('click', function(){
+        var id = document.querySelector('.tao_cmod').getAttribute('data-x-toggleable');
+        var isModalOpen = window.xToggleGetState(id);
         if (isModalOpen) {
-            window.xToggleUpdate( id, false );
+            window.xToggleUpdate(id, false);
         }        
     });
 
-    jQuery('#tao_cancel_message').on('keydown', function(e){
+    document.getElementById('tao_cancel_message').addEventListener('keydown', function(e){
         console.log(e);
     });
 
-    jQuery('.tao_pause_btn').on('click', function(){
+    document.querySelector('.tao_pause_btn').addEventListener('click', function(){
 
         //Glitch with the theme requires this :/
         var msg = '';
-        jQuery('.tao_cancel_message').each(function(){
-            if (jQuery(this).val() != '') {
-                msg = jQuery(this).val();
+        var cancelMessages = document.querySelectorAll('.tao_cancel_message');
+        cancelMessages.forEach(function(messageElement){
+            if (messageElement.value != '') {
+                msg = messageElement.value;
             }
         });
-        jQuery.ajax(tao_account.url, {
-            timeout: 60000,
-            data: {
-                'action': 'tao_pause',
-                'nonce': tao_account.nonce,
-                'message': msg,
+        var data = {
+            'action': 'tao_pause',
+            'nonce': tao_account.nonce,
+            'message': msg,
+        };
+        fetch(tao_account.url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
             },
-            type: "POST",
-            error: function() {						
-            },
-            success: function(response) {
-                var res = JSON.parse(response);
-                if (res.error == false) {
-                    switch (res.message) {
-                        case 'SUCCESS':
-                            //Update subscription details
-                            jQuery('#tao_plan_details').show();
-                            jQuery('#tao_main_details').hide();
-                            //Show confirmation of cancellation modal
-                            var id = jQuery('.tao_cmod').attr('data-x-toggleable');
-                            var isModalOpen = window.xToggleGetState( id );
-                            if (isModalOpen) {
-                                window.xToggleUpdate( id, false );
-                            }
-                            //Show confirmation message MODAL
-                            jQuery('.tao_pause_notice').html('Your membership has been successfully paused');
-                            setTimeout(function(){
-                                jQuery('#tao_pause_confirm-anchor-toggle')[0].click();
-                            }, 100);
-                            //Close the modal
-                            setTimeout(function(){
-                                var id = jQuery('.tao_pause_confirm').attr('data-x-toggleable');
-                                var isModalOpen = window.xToggleGetState( id );
-                                if (isModalOpen) {
-                                    window.xToggleUpdate( id, false );
-                                }
-                            }, 4000);
-                            break;
-                        case 'FAIL':
-                            //Show confirmation of cancellation modal
-                            var id = jQuery('.tao_cmod').attr('data-x-toggleable');
-                            var isModalOpen = window.xToggleGetState( id );
-                            if (isModalOpen) {
-                                window.xToggleUpdate( id, false );
-                            }
-                            //Show confirmation message MODAL
-                            jQuery('.tao_pause_notice').html('Sorry, we were unable to pause your membership, please contact support and we\'ll assist you further.');
-                            setTimeout(function(){
-                                jQuery('#tao_pause_confirm-anchor-toggle')[0].click();
-                            }, 100);
-                            //Close the modal
-                            setTimeout(function(){
-                                var id = jQuery('.tao_pause_confirm').attr('data-x-toggleable');
-                                var isModalOpen = window.xToggleGetState( id );
-                                if (isModalOpen) {
-                                    window.xToggleUpdate( id, false );
-                                }
-                            }, 8000);
-                            break;
-                    }
-                } else {
-                    console.log(res);
-                }
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
             }
-        });   
+            return response.json();
+        })
+        .then(res => {
+            if (res.error == false) {
+                switch (res.message) {
+                    case 'SUCCESS':
+                        //Update subscription details
+                        document.getElementById('tao_plan_details').style.display = 'block';
+                        document.getElementById('tao_main_details').style.display = 'none';
+                        //Show confirmation of cancellation modal
+                        var id = document.querySelector('.tao_cmod').getAttribute('data-x-toggleable');
+                        var isModalOpen = window.xToggleGetState(id);
+                        if (isModalOpen) {
+                            window.xToggleUpdate(id, false);
+                        }
+                        //Show confirmation message MODAL
+                        document.querySelector('.tao_pause_notice').innerHTML = 'Your membership has been successfully paused';
+                        setTimeout(function(){
+                            document.getElementById('tao_pause_confirm-anchor-toggle').click();
+                        }, 100);
+                        //Close the modal
+                        setTimeout(function(){
+                            var id = document.querySelector('.tao_pause_confirm').getAttribute('data-x-toggleable');
+                            var isModalOpen = window.xToggleGetState(id);
+                            if (isModalOpen) {
+                                window.xToggleUpdate(id, false);
+                            }
+                        }, 4000);
+                        break;
+                    case 'FAIL':
+                        //Show confirmation of cancellation modal
+                        var id = document.querySelector('.tao_cmod').getAttribute('data-x-toggleable');
+                        var isModalOpen = window.xToggleGetState(id);
+                        if (isModalOpen) {
+                            window.xToggleUpdate(id, false);
+                        }
+                        //Show confirmation message MODAL
+                        document.querySelector('.tao_pause_notice').innerHTML = 'Sorry, we were unable to pause your membership, please contact support and we\'ll assist you further.';
+                        setTimeout(function(){
+                            document.getElementById('tao_pause_confirm-anchor-toggle').click();
+                        }, 100);
+                        //Close the modal
+                        setTimeout(function(){
+                            var id = document.querySelector('.tao_pause_confirm').getAttribute('data-x-toggleable');
+                            var isModalOpen = window.xToggleGetState(id);
+                            if (isModalOpen) {
+                                window.xToggleUpdate(id, false);
+                            }
+                        }, 8000);
+                        break;
+                }
+            } else {
+                console.log(res);
+            }
+        })
+        .catch(error => {
+            console.error('There has been a problem with your fetch operation:', error);
+        });
     });
 });
