@@ -188,28 +188,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         if (passed) {
             var data = {
-                'action': 'tao_edit_profile',
-                'nonce': tao_account.nonce,
-                'firstname': firstname.value,
-                'lastname': lastname.value,
-                'email': email.value,
-                'current': pass,
-                'new': p_new.value
-            };
-            fetch(tao_account.url, {
+                url: tao_account.url,
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
+                data: {
+                    action: 'tao_edit_profile',
+                    nonce: tao_account.nonce,
+                    firstname: firstname.value,
+                    lastname: lastname.value,
+                    email: email.value,
+                    current: pass,
+                    new: p_new.value
                 }
-                return response.json();
-            })
-            .then(res => {
+            };
+            window.tao_ajaxHandler(data, function(res) {
                 if (res.error == false) {
                     switch (res.message) {
                         case 'OK':
@@ -245,10 +236,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             break;    
                     }
                 }
-            })
-            .catch(error => {
-                console.error('There has been a problem with your fetch operation:', error);
-            });           
+            });          
         }
     }
 
@@ -306,24 +294,16 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         var data = {
-            'action': 'tao_pause',
-            'nonce': tao_account.nonce,
-            'message': msg,
-        };
-        fetch(tao_account.url, {
+            url: tao_account.url,
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
+            data: {
+                action: 'tao_pause',
+                nonce: tao_account.nonce,
+                message: msg
             }
-            return response.json();
-        })
-        .then(res => {
+        };
+
+        window.tao_ajaxHandler(data, function(res) {
             if (res.error == false) {
                 switch (res.message) {
                     case 'SUCCESS':
@@ -375,9 +355,6 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 console.log(res);
             }
-        })
-        .catch(error => {
-            console.error('There has been a problem with your fetch operation:', error);
         });
     });
 });
