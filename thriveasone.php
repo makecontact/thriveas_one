@@ -76,7 +76,7 @@ define('TAO_PLAYER_LIB', '1.0.6');
 define('REMOTE_DB_PASS','uBqh%Ob040pKW8jNC863');
 define('REMOTE_DB_USER','cms');
 define('REMOTE_DB_NAME','cms');
-define('REMOTE_DB_NAME', 'localhost');
+define('REMOTE_DB_HOST', 'localhost');
 
 define('TAO_FEEDBACK_EMAIL', 'hello@thriveas.one');
 
